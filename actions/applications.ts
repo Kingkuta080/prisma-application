@@ -44,6 +44,7 @@ export async function createApplication(
       applicationId: application.id,
       amount: appSession.amount,
       status: "PENDING",
+      currency: "NGN",
       reference: `PAY-${application.id.slice(0, 8)}`,
     },
   });

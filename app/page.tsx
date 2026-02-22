@@ -48,7 +48,7 @@ export default async function HomePage() {
       where: { userId: session.user.id },
       include: {
         session: true,
-        payments: true,
+        payments: { orderBy: { createdAt: "desc" } },
         admission: true,
       },
       orderBy: { createdAt: "desc" },

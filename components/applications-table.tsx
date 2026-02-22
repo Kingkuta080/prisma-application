@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -10,7 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { simulatePayment } from "@/actions/applications";
+import { initializePayment } from "@/actions/payment";
+import { toast } from "sonner";
+
+function formatNaira(amount: number): string {
+  return `₦${Number(amount).toLocaleString("en-NG")}`;
+}
 
 type App = {
   id: string;
@@ -28,10 +34,23 @@ export function ApplicationsTable({
   applications: App[];
 }) {
   const router = useRouter();
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   async function handlePay(applicationId: string) {
-    await simulatePayment(applicationId);
-    router.refresh();
+    setPayingId(applicationId);
+    try {
+      const result = await initializePayment(applicationId);
+      if (result.ok) {
+        window.location.href = result.authorizationUrl;
+        return;
+      }
+      toast.error(result.error);
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setPayingId(null);
+      router.refresh();
+    }
   }
 
   if (applications.length === 0) {
@@ -57,7 +76,10 @@ export function ApplicationsTable({
       </TableHeader>
       <TableBody>
         {applications.map((app) => {
-          const payment = app.payments[0];
+          const hasPaid =
+            app.status === "PAID" ||
+            app.status === "COMPLETED" ||
+            app.payments.some((p) => p.status === "COMPLETED");
           const amount = app.session.amount;
           return (
             <TableRow key={app.id}>
@@ -66,22 +88,21 @@ export function ApplicationsTable({
               <TableCell>{app.session.year}</TableCell>
               <TableCell>{app.status}</TableCell>
               <TableCell>
-                {payment?.status === "COMPLETED"
-                  ? "Paid"
-                  : `Pending (${amount})`}
+                {hasPaid ? "Paid" : `Pending (${formatNaira(amount)})`}
               </TableCell>
               <TableCell>
                 {app.admission?.status ?? "—"}
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-1">
-                  {app.status === "SUBMITTED" && payment?.status === "PENDING" && (
+                  {app.status === "SUBMITTED" && !hasPaid && (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handlePay(app.id)}
+                      disabled={payingId === app.id}
                     >
-                      Pay (simulate)
+                      {payingId === app.id ? "Redirecting…" : `Pay ${formatNaira(app.session.amount)}`}
                     </Button>
                   )}
                   {(app.status === "PAID" || app.status === "COMPLETED") && (
