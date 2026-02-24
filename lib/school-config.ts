@@ -71,7 +71,28 @@ export function getSchoolColorStyleBlock(): string {
 }`;
 }
 
-/** Primary color as a CSS value (hex or hsl) for use in PDFs / non-CSS contexts. */
+/** Color as a CSS value (hex or hsl) for use in PDFs / non-CSS contexts. */
 export function getPrimaryColorValue(): string {
   return toCssColor(getSchoolConfig().colorPrimary);
+}
+
+export function getSecondaryColorValue(): string {
+  return toCssColor(getSchoolConfig().colorSecondary);
+}
+
+export function getAccentColorValue(): string {
+  return toCssColor(getSchoolConfig().colorAccent);
+}
+
+/** Resolved logo URL for PDF (absolute if possible for react-pdf Image). */
+export function getSchoolLogoUrl(): string | null {
+  const config = getSchoolConfig();
+  const appUrl = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "";
+  if (config.schoolLogo.startsWith("http")) return config.schoolLogo;
+  if (appUrl) {
+    const base = appUrl.replace(/\/$/, "");
+    const path = config.schoolLogo.startsWith("/") ? config.schoolLogo : `/${config.schoolLogo}`;
+    return `${base}${path}`;
+  }
+  return null;
 }

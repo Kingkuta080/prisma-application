@@ -20,46 +20,123 @@ export default async function LoginPage({
   const showRegistered = params.registered === "1";
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <SchoolLogo
-            schoolLogo={config.schoolLogo}
-            size={48}
-            wrapperClassName="flex justify-center"
-          />
-          <span className="text-sm font-medium text-muted-foreground">
-            {config.schoolName}
-          </span>
-          <h1 className="text-xl font-semibold">Sign in</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Use your email or Google to continue.
-          </p>
+    <div
+      className="flex min-h-screen items-center justify-center p-4"
+      style={{ background: "var(--background)" }}
+    >
+      <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+        <div className="grid lg:grid-cols-[480px_1fr]">
+          <div
+            className="relative hidden overflow-hidden p-10 lg:flex lg:flex-col lg:justify-between"
+            style={{
+              background:
+                "linear-gradient(160deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 75%, #0a0630) 100%)",
+            }}
+          >
+            <div className="dot-grid absolute inset-0 opacity-100" />
+
+            <div
+              className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full opacity-20"
+              style={{
+                background:
+                  "radial-gradient(circle, var(--brand-accent), transparent 70%)",
+              }}
+            />
+
+            <div className="relative flex items-center gap-3">
+              <SchoolLogo
+                schoolLogo={config.schoolLogo}
+                wrapperClassName="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white/15 ring-1 ring-white/20"
+                fallbackIconClassName="size-5 text-white/90"
+                size={40}
+              />
+              <span className="font-heading text-[16px] font-semibold text-white">
+                {config.schoolName}
+              </span>
+            </div>
+
+            <div className="relative space-y-4">
+              <div className="h-px w-12 bg-white/30" />
+              <h1 className="font-heading text-3xl font-semibold leading-tight text-white">
+                Welcome back to your family enrollment dashboard.
+              </h1>
+              <p className="text-sm leading-relaxed text-white/65">
+                Sign in to manage applications, track admission status, and
+                download official documents.
+              </p>
+            </div>
+
+            <div className="relative">
+              <div className="rounded-xl border border-white/15 bg-white/8 px-4 py-3">
+                <p className="text-xs text-white/55">
+                  Parent Portal · Secure & encrypted access
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center p-8 sm:p-12">
+            <div className="w-full max-w-sm">
+              <div className="mb-6 flex items-center gap-2 lg:hidden">
+                <SchoolLogo
+                  schoolLogo={config.schoolLogo}
+                  wrapperClassName="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-primary/10"
+                  fallbackIconClassName="size-4 text-primary"
+                  size={32}
+                />
+                <span className="font-heading text-[15px] font-semibold text-foreground">
+                  {config.schoolName}
+                </span>
+              </div>
+
+              <div className="mb-8">
+                <h2 className="font-heading text-2xl font-semibold text-foreground">
+                  Sign in
+                </h2>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  Use your email or Google account to continue.
+                </p>
+              </div>
+
+              {showVerified && (
+                <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                  Email verified — you can sign in now.
+                </div>
+              )}
+              {showRegistered && (
+                <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  Account created. Please verify your email first, then sign in.
+                </div>
+              )}
+
+              <Suspense
+                fallback={
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                }
+              >
+                <LoginForm />
+              </Suspense>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                No account?{" "}
+                <Link
+                  href="/register"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Register now
+                </Link>
+              </p>
+              <p className="mt-3 text-center text-sm text-muted-foreground">
+                <Link
+                  href="/"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  ← Back to home
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
-        {showVerified && (
-          <p className="rounded-md bg-green-500/10 px-3 py-2 text-center text-sm text-green-700 dark:text-green-400">
-            Email verified. You can sign in now.
-          </p>
-        )}
-        {showRegistered && (
-          <p className="rounded-md bg-green-500/10 px-3 py-2 text-center text-sm text-green-700 dark:text-green-400">
-            Account created. Please verify your email, then sign in.
-          </p>
-        )}
-        <Suspense fallback={<div className="text-muted-foreground text-sm">Loading…</div>}>
-          <LoginForm />
-        </Suspense>
-        <p className="text-center text-sm text-muted-foreground">
-          No account?{" "}
-          <Link href="/register" className="text-primary underline">
-            Register
-          </Link>
-        </p>
-        <p className="text-center text-sm">
-          <Link href="/" className="text-muted-foreground hover:text-foreground underline">
-            Back to home
-          </Link>
-        </p>
       </div>
     </div>
   );

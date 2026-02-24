@@ -71,7 +71,7 @@ export function ApplicationsTable({
           <TableHead>Status</TableHead>
           <TableHead>Payment</TableHead>
           <TableHead>Admission</TableHead>
-          <TableHead className="w-[180px]" />
+          <TableHead className="w-[180px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -93,8 +93,8 @@ export function ApplicationsTable({
               <TableCell>
                 {app.admission?.status ?? "—"}
               </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
+              <TableCell className="text-right">
+                <div className="flex flex-wrap justify-end gap-1">
                   {app.status === "SUBMITTED" && !hasPaid && (
                     <Button
                       size="sm"
@@ -102,7 +102,7 @@ export function ApplicationsTable({
                       onClick={() => handlePay(app.id)}
                       disabled={payingId === app.id}
                     >
-                      {payingId === app.id ? "Redirecting…" : `Pay ${formatNaira(app.session.amount)}`}
+                      {payingId === app.id ? "paying..." : `Pay ${formatNaira(app.session.amount)}`}
                     </Button>
                   )}
                   {(app.status === "PAID" || app.status === "COMPLETED") && (

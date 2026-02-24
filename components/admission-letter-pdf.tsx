@@ -4,132 +4,286 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from "@react-pdf/renderer";
-
-const primaryDefault = "#24136c";
-
-function createStyles(primaryColor: string) {
-  return StyleSheet.create({
-    page: { padding: 40, fontSize: 11 },
-    letterhead: {
-      borderBottomWidth: 2,
-      borderBottomColor: primaryColor,
-      paddingBottom: 12,
-      marginBottom: 24,
-    },
-    letterheadTitle: { fontSize: 20, fontWeight: "bold", color: primaryColor },
-    letterheadSub: { fontSize: 11, color: "#666", marginTop: 4 },
-    watermark: {
-      position: "absolute",
-      top: "35%",
-      left: 0,
-      right: 0,
-      textAlign: "center",
-      fontSize: 42,
-      color: primaryColor,
-      opacity: 0.06,
-    },
-    statusPanel: {
-      backgroundColor: "#f0f4ff",
-      borderWidth: 1,
-      borderColor: primaryColor,
-      borderRadius: 4,
-      padding: 12,
-      marginBottom: 20,
-    },
-    statusLabel: { fontSize: 9, textTransform: "uppercase", color: "#666", marginBottom: 2 },
-    statusValue: { fontSize: 14, fontWeight: "bold", color: primaryColor },
-    row: { flexDirection: "row", marginBottom: 8 },
-    label: { width: 120, fontWeight: "bold", color: "#333" },
-    value: { flex: 1 },
-    body: { marginTop: 20, fontSize: 11, lineHeight: 1.6 },
-    signatureLine: { marginTop: 32, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#ccc", width: 200 },
-    signatureLabel: { fontSize: 9, color: "#666", marginTop: 4 },
-    footer: {
-      position: "absolute",
-      bottom: 30,
-      left: 40,
-      right: 40,
-      borderTopWidth: 1,
-      borderTopColor: "#eee",
-      paddingTop: 8,
-      fontSize: 9,
-      color: "#666",
-      textAlign: "center",
-    },
-  });
-}
 
 type AdmissionLetterPdfProps = {
   wardName: string;
   sessionYear: number;
   applicationId: string;
   admissionStatus: string;
-  schoolName?: string;
   class?: string | null;
-  primaryColor?: string;
+  schoolName: string;
+  schoolDescription: string;
+  logoUrl: string | null;
+  colorPrimary: string;
+  colorSecondary: string;
+  colorAccent: string;
 };
+
+function formatLetterDate() {
+  return new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatShortDate() {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getFullYear()).slice(2)}`;
+}
 
 export function AdmissionLetterPdf({
   wardName,
   sessionYear,
   applicationId,
   admissionStatus,
-  schoolName = "School",
   class: className,
-  primaryColor = primaryDefault,
+  schoolName,
+  schoolDescription,
+  logoUrl,
+  colorPrimary,
+  colorSecondary,
+  colorAccent,
 }: AdmissionLetterPdfProps) {
-  const styles = createStyles(primaryColor);
   const isOfferedOrAccepted =
     admissionStatus === "OFFERED" || admissionStatus === "ACCEPTED";
+
+  const styles = StyleSheet.create({
+    page: {
+      padding: 40,
+      fontSize: 10,
+      fontFamily: "Helvetica",
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colorPrimary,
+      marginHorizontal: -40,
+      marginTop: -40,
+      marginBottom: 0,
+      paddingVertical: 20,
+      paddingHorizontal: 28,
+    },
+    logo: {
+      width: 52,
+      height: 52,
+      borderRadius: 6,
+      backgroundColor: "rgba(255,255,255,0.2)",
+      marginRight: 14,
+    },
+    headerText: { flex: 1 },
+    schoolName: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: "#ffffff",
+      marginBottom: 4,
+      fontFamily: "Helvetica-Bold",
+    },
+    schoolDescription: {
+      fontSize: 9,
+      color: "rgba(255,255,255,0.85)",
+      marginBottom: 6,
+    },
+    letterLabel: {
+      fontSize: 8,
+      color: "rgba(255,255,255,0.7)",
+      letterSpacing: 1.5,
+      textTransform: "uppercase",
+      fontFamily: "Helvetica-Bold",
+    },
+    rule: {
+      height: 3,
+      backgroundColor: colorAccent,
+      marginHorizontal: -40,
+      marginBottom: 20,
+    },
+    titleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      marginBottom: 6,
+    },
+    letterTitle: {
+      fontSize: 14,
+      fontFamily: "Helvetica-Bold",
+      color: colorPrimary,
+    },
+    refText: { fontSize: 8, color: "#666" },
+    dateText: { fontSize: 10, color: "#666", marginBottom: 20 },
+    toLabel: {
+      fontSize: 9,
+      color: "#666",
+      marginBottom: 4,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    wardNameLarge: {
+      fontSize: 14,
+      fontFamily: "Helvetica-Bold",
+      color: colorPrimary,
+      marginBottom: 14,
+    },
+    infoPanel: {
+      backgroundColor: colorSecondary,
+      padding: 14,
+      marginBottom: 18,
+      borderRadius: 2,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 4,
+    },
+    infoItem: { fontSize: 10, marginRight: 16 },
+    infoLabel: { color: "#666" },
+    infoValue: { fontFamily: "Helvetica-Bold", color: "#333" },
+    statusBadge: {
+      fontSize: 9,
+      fontFamily: "Helvetica-Bold",
+      color: colorAccent,
+      marginTop: 4,
+    },
+    body: {
+      fontSize: 10,
+      lineHeight: 1.55,
+      color: "#333",
+      marginBottom: 20,
+    },
+    bodyParagraph: { marginBottom: 10 },
+    signOff: {
+      marginTop: 24,
+      marginBottom: 6,
+      fontSize: 10,
+      fontFamily: "Helvetica-Bold",
+    },
+    signLine: {
+      width: 180,
+      borderBottomWidth: 1,
+      borderBottomColor: "#333",
+      marginBottom: 6,
+    },
+    signTitle: { fontSize: 9, color: "#666", marginBottom: 2 },
+    signSchool: {
+      fontSize: 10,
+      fontFamily: "Helvetica-Bold",
+      color: colorPrimary,
+    },
+    footer: {
+      position: "absolute",
+      bottom: 28,
+      left: 40,
+      right: 40,
+      borderTopWidth: 1,
+      borderTopColor: "#e5e5e5",
+      paddingTop: 14,
+    },
+    footerText: { fontSize: 8, color: "#888", textAlign: "center" },
+    watermarkWrap: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 0,
+    },
+    watermarkLogo: { width: 200, height: 200, opacity: 0.06 },
+    watermarkText: {
+      fontSize: 48,
+      fontFamily: "Helvetica-Bold",
+      color: colorPrimary,
+      opacity: 0.05,
+      textTransform: "uppercase",
+      letterSpacing: 2,
+    },
+    contentWrap: { position: "relative" as const, zIndex: 1 },
+  });
+
+  const statusLabel =
+    admissionStatus === "ACCEPTED"
+      ? "ADMISSION ACCEPTED"
+      : admissionStatus === "OFFERED"
+        ? "ADMISSION OFFERED"
+        : admissionStatus;
+
+  const bodyText = isOfferedOrAccepted
+    ? `We are pleased to inform you that ${wardName} has been ${admissionStatus === "ACCEPTED" ? "accepted" : "offered a place"} for admission to ${schoolName} for the ${sessionYear} academic session${className ? ` in ${className}` : ""}.`
+    : `This letter is regarding the admission status (${admissionStatus}) for ${wardName} for the ${sessionYear} session.`;
+
+  const bodyText2 = isOfferedOrAccepted
+    ? "Please retain this letter as confirmation of admission. Further instructions regarding resumption and required documents will be communicated separately."
+    : "Please contact the admissions office if you have any questions.";
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.watermark}>
-          <Text>{schoolName}</Text>
-        </View>
-        <View style={styles.letterhead}>
-          <Text style={styles.letterheadTitle}>{schoolName}</Text>
-          <Text style={styles.letterheadSub}>Admission Letter</Text>
-        </View>
-
-        <View style={styles.statusPanel}>
-          <Text style={styles.statusLabel}>Admission status</Text>
-          <Text style={styles.statusValue}>{admissionStatus}</Text>
+        <View style={styles.watermarkWrap}>
+          {logoUrl ? (
+            <Image src={logoUrl} style={styles.watermarkLogo} />
+          ) : (
+            <Text style={styles.watermarkText}>{schoolName}</Text>
+          )}
         </View>
 
-        <View style={styles.row}>
-          <Text style={styles.label}>Application ID:</Text>
-          <Text style={styles.value}>{applicationId}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Session year:</Text>
-          <Text style={styles.value}>{sessionYear}</Text>
-        </View>
-        {className != null && className !== "" && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Class:</Text>
-            <Text style={styles.value}>{className}</Text>
+        <View style={styles.contentWrap}>
+          <View style={styles.header}>
+            {logoUrl ? (
+              <Image src={logoUrl} style={styles.logo} />
+            ) : (
+              <View style={styles.logo} />
+            )}
+            <View style={styles.headerText}>
+              <Text style={styles.schoolName}>{schoolName}</Text>
+              <Text style={styles.schoolDescription}>{schoolDescription}</Text>
+              <Text style={styles.letterLabel}>Admission Letter</Text>
+            </View>
           </View>
-        )}
-        <View style={styles.row}>
-          <Text style={styles.label}>Child name:</Text>
-          <Text style={styles.value}>{wardName}</Text>
-        </View>
+          <View style={styles.rule} />
 
-        <Text style={styles.body}>
-          {isOfferedOrAccepted
-            ? `This letter confirms that ${wardName} has been ${admissionStatus === "ACCEPTED" ? "accepted" : "offered a place"} for the ${sessionYear} session. Please retain this letter for your records.`
-            : `This letter is regarding the admission status (${admissionStatus}) for ${wardName} for the ${sessionYear} session.`}
-        </Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.letterTitle}>ADMISSION LETTER</Text>
+            <Text style={styles.refText}>Ref: {applicationId.slice(0, 12)}</Text>
+          </View>
+          <Text style={styles.dateText}>{formatLetterDate()}</Text>
 
-        <View style={styles.signatureLine}>
-          <Text style={styles.signatureLabel}>Authorized signature</Text>
-        </View>
+          <Text style={styles.toLabel}>To the Parent/Guardian of:</Text>
+          <Text style={styles.wardNameLarge}>{wardName}</Text>
 
-        <View style={styles.footer} fixed>
-          <Text>{schoolName} — Admission letter. Official document.</Text>
+          <View style={styles.infoPanel}>
+            {className != null && className !== "" && (
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Class </Text>
+                <Text style={styles.infoValue}>{className}</Text>
+              </View>
+            )}
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Session </Text>
+              <Text style={styles.infoValue}>
+                {sessionYear - 1} / {sessionYear}
+              </Text>
+            </View>
+            <View style={{ width: "100%" }}>
+              <Text style={styles.statusBadge}>Status: {statusLabel}</Text>
+            </View>
+          </View>
+
+          <View style={styles.body}>
+            <Text style={styles.bodyParagraph}>Dear Parent/Guardian,</Text>
+            <Text style={styles.bodyParagraph}>{bodyText}</Text>
+            <Text style={styles.bodyParagraph}>{bodyText2}</Text>
+          </View>
+
+          <Text style={styles.signOff}>Yours faithfully,</Text>
+          <View style={styles.signLine} />
+          <Text style={styles.signTitle}>The Admissions Office</Text>
+          <Text style={styles.signSchool}>{schoolName}</Text>
+
+          <View style={styles.footer} fixed>
+            <Text style={styles.footerText}>
+              This letter is computer-generated. Issued: {formatShortDate()}
+            </Text>
+          </View>
         </View>
       </Page>
     </Document>

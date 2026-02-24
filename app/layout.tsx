@@ -13,6 +13,8 @@ const instrumentSans = Instrument_Sans({
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "900"],
+  style: ["normal", "italic"],
 });
 
 export const dynamic = "force-dynamic";
@@ -34,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${instrumentSans.variable} ${fraunces.variable} antialiased`}
+        className={`${instrumentSans.variable} ${fraunces.variable} font-sans antialiased`}
       >
         <style dangerouslySetInnerHTML={{ __html: styleBlock }} />
         <SessionProvider>

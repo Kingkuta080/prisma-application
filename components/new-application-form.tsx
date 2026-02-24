@@ -92,6 +92,7 @@ export function NewApplicationForm({
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(t);
+          setShowSuccessDialog(false);
           router.push("/");
           router.refresh();
           return 0;
@@ -116,6 +117,15 @@ export function NewApplicationForm({
 
   return (
     <>
+    <div className="relative">
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-[2px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="size-9 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm font-medium text-muted-foreground">Submitting application…</p>
+          </div>
+        </div>
+      )}
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="sessionId">Session</Label>
@@ -202,22 +212,27 @@ export function NewApplicationForm({
         </Button>
       </div>
     </form>
+    </div>
 
     <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
       <DialogContent showCloseButton>
         <DialogHeader>
           <DialogTitle>Application submitted</DialogTitle>
           <DialogDescription>
-            Your application was submitted successfully. You can start another application or go to your dashboard to pay. Redirecting in {countdown} second{countdown !== 1 ? "s" : ""}…
+            Your application was submitted successfully. You can start another application or go to your dashboard to pay.
           </DialogDescription>
         </DialogHeader>
-        <p className="text-center text-2xl font-semibold tabular-nums">{countdown}</p>
         <DialogFooter showCloseButton={false}>
           <Button onClick={handleNewApplication}>
             New application
           </Button>
-          <Button variant="outline" onClick={handlePayNow}>
+          <Button variant="outline" onClick={handlePayNow} className="gap-2">
             Pay now
+            {countdown > 0 && (
+              <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-primary/20 px-1.5 font-semibold tabular-nums text-primary">
+                {countdown}
+              </span>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
