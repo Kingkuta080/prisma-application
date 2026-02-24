@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -34,6 +34,8 @@ export function NewApplicationForm({
   const [loading, setLoading] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  const [countdown, setCountdown] = useState(10);
+  const [newApplicationId, setNewApplicationId] = useState<string | null>(null);
 
   const selectedSession = useMemo(
     () => sessions.find((s) => s.id === selectedSessionId),
@@ -77,8 +79,27 @@ export function NewApplicationForm({
     }
     setLoading(false);
     toast.success("Application submitted");
+    setNewApplicationId(result && "applicationId" in result ? result.applicationId ?? null : null);
+    setCountdown(10);
     setShowSuccessDialog(true);
   }
+
+  useEffect(() => {
+    if (!showSuccessDialog || countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setShowSuccessDialog(false);
+          router.push("/");
+          router.refresh();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [showSuccessDialog, router]);
 
   function handleNewApplication() {
     setShowSuccessDialog(false);
@@ -86,7 +107,7 @@ export function NewApplicationForm({
     router.refresh();
   }
 
-  function handleGoHome() {
+  function handlePayNow() {
     setShowSuccessDialog(false);
     router.push("/");
     router.refresh();
@@ -123,7 +144,7 @@ export function NewApplicationForm({
               <option value="">Select session</option>
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
-                  Year {s.year} (amount: {s.amount})
+                  Year {s.year} (amount: ₦{s.amount})
                 </option>
               ))}
             </select>
@@ -210,15 +231,23 @@ export function NewApplicationForm({
         <DialogHeader>
           <DialogTitle>Application submitted</DialogTitle>
           <DialogDescription>
-            Your application was submitted successfully. You can start another application or return to your dashboard.
+            Your application was submitted successfully. You can start another application or go to your dashboard to complete payment.
           </DialogDescription>
         </DialogHeader>
+        <div className="py-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            Redirecting to payment in
+          </p>
+          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-primary">
+            {countdown}
+          </p>
+        </div>
         <DialogFooter showCloseButton={false}>
           <Button onClick={handleNewApplication}>
             New application
           </Button>
-          <Button variant="outline" onClick={handleGoHome}>
-            Go home
+          <Button onClick={handlePayNow}>
+            Pay now
           </Button>
         </DialogFooter>
       </DialogContent>

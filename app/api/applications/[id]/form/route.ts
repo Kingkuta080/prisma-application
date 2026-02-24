@@ -37,6 +37,9 @@ export async function GET(
   }
 
   try {
+    const completedPayment = application.payments?.find(
+      (p) => p.status === "COMPLETED"
+    );
     const buffer = await generateApplicationPdfBuffer({
       wardName: application.wardName,
       wardDob: application.wardDob.toISOString().slice(0, 10),
@@ -44,6 +47,11 @@ export async function GET(
       sessionYear: application.session.year,
       applicationId: application.id,
       class: application.class,
+      amount: Number(application.session.amount),
+      paymentDate: completedPayment?.createdAt
+        ? completedPayment.createdAt.toISOString().slice(0, 10)
+        : undefined,
+      paymentStatus: application.status,
     });
 
     return new NextResponse(new Uint8Array(buffer), {

@@ -1,38 +1,47 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertCircle, Clock } from "lucide-react";
 
 type DeadlineCountdownProps = {
-  closeAt: string; // ISO date string
+  closeAt: string;
   compact?: boolean;
+  inverse?: boolean;
 };
 
-function getTimeLeft(closeAt: Date): { days: number; hours: number; minutes: number; closed: boolean } {
+function getTimeLeft(closeAt: Date) {
   const now = new Date();
   const end = new Date(closeAt);
-  if (end <= now) {
-    return { days: 0, hours: 0, minutes: 0, closed: true };
-  }
+  if (end <= now) return { days: 0, hours: 0, minutes: 0, seconds: 0 ,closed: true };
   const diff = end.getTime() - now.getTime();
-  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-  const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-  const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-  return { days, hours, minutes, closed: false };
+  return {
+    days: Math.floor(diff / (24 * 60 * 60 * 1000)),
+    hours: Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)),
+    minutes: Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000)),
+    seconds: Math.floor((diff % (60 * 1000)) / 1000),
+    closed: false,
+  };
 }
 
-export function DeadlineCountdown({ closeAt, compact = false }: DeadlineCountdownProps) {
+export function DeadlineCountdown({
+  closeAt,
+  compact = false,
+  inverse = false,
+}: DeadlineCountdownProps) {
   const [left, setLeft] = useState(() => getTimeLeft(new Date(closeAt)));
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setLeft(getTimeLeft(new Date(closeAt)));
-    }, 60_000); // update every minute
+    const interval = setInterval(
+      () => setLeft(getTimeLeft(new Date(closeAt))),
+      1000
+    );
     return () => clearInterval(interval);
   }, [closeAt]);
 
   if (left.closed) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className={`flex items-center gap-2 text-sm ${inverse ? "text-white/70" : "text-muted-foreground"}`}>
+        <Clock className="size-4" />
         Applications for this session have closed.
       </p>
     );
@@ -40,40 +49,78 @@ export function DeadlineCountdown({ closeAt, compact = false }: DeadlineCountdow
 
   if (compact) {
     return (
-      <p className="text-sm">
-        <span className="font-medium">Deadline in:</span>{" "}
-        <span className="text-muted-foreground">
-          {left.days}d {left.hours}h {left.minutes}m
+      <div className={`text-sm ${inverse ? "text-white/90" : ""}`}>
+        <span className={`text-xs font-semibold uppercase tracking-wider ${inverse ? "text-white/55" : "text-muted-foreground"}`}>
+          Deadline in
         </span>
-      </p>
+        <p className={`mt-1 font-heading text-2xl font-semibold ${inverse ? "text-white" : "text-foreground"}`}>
+          {left.days}d {left.hours}h {left.minutes}m {left.seconds}s 
+         </p>
+      </div>
     );
   }
 
-  const urgencyClass =
-    left.days <= 2
-      ? "border-destructive/40 bg-destructive/10"
-      : left.days <= 7
-      ? "border-accent/40 bg-accent/20"
-      : "border-primary/30 bg-primary/10";
+  const urgent = left.days <= 3;
+  const soon = left.days <= 7 && !urgent;
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm font-medium text-muted-foreground">
-        Application deadline
-      </p>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className={`rounded-xl border p-4 ${urgencyClass}`}>
-          <p className="text-3xl font-semibold">{left.days}</p>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Days</p>
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Application deadline
+          </p>
+          <h3 className="mt-0.5 font-heading text-lg font-semibold text-foreground">
+            Enrollment closes soon
+          </h3>
         </div>
-        <div className={`rounded-xl border p-4 ${urgencyClass}`}>
-          <p className="text-3xl font-semibold">{left.hours}</p>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Hours</p>
-        </div>
-        <div className={`rounded-xl border p-4 ${urgencyClass}`}>
-          <p className="text-3xl font-semibold">{left.minutes}</p>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Minutes</p>
-        </div>
+        {urgent && (
+          <span className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600">
+            <AlertCircle className="size-3.5" />
+            Urgent
+          </span>
+        )}
+        {soon && !urgent && (
+          <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600">
+            <Clock className="size-3.5" />
+            Closing soon
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          { value: left.days, label: "Days" },
+          { value: left.hours, label: "Hours" },
+          { value: left.minutes, label: "Minutes" },
+          { value: left.seconds, label: "Seconds" },
+        ].map(({ value, label }) => (
+          <div
+            key={label}
+            className={`rounded-xl border p-4 text-center ${
+              urgent
+                ? "border-red-100 bg-red-50"
+                : soon
+                ? "border-amber-100 bg-amber-50"
+                : "border-primary/15 bg-primary/5"
+            }`}
+          >
+            <p
+              className={`font-heading text-3xl font-semibold ${
+                urgent
+                  ? "text-red-700"
+                  : soon
+                  ? "text-amber-700"
+                  : "text-foreground"
+              }`}
+            >
+              {String(value).padStart(2, "0")}
+            </p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              {label}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
