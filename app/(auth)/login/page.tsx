@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { GraduationCap } from "lucide-react";
 import { auth } from "@/auth";
 import { getSchoolConfig } from "@/lib/school-config";
+import { SchoolLogo } from "@/components/school-logo";
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage({
@@ -48,9 +48,12 @@ export default async function LoginPage({
 
             {/* School branding */}
             <div className="relative flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-                <GraduationCap className="size-5 text-white/90" />
-              </span>
+              <SchoolLogo
+                schoolLogo={config.schoolLogo}
+                wrapperClassName="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white/15 ring-1 ring-white/20"
+                fallbackIconClassName="size-5 text-white/90"
+                size={40}
+              />
               <span className="font-heading text-[16px] font-semibold text-white">
                 {config.schoolName}
               </span>
@@ -83,9 +86,12 @@ export default async function LoginPage({
             <div className="w-full max-w-sm">
               {/* Mobile logo */}
               <div className="mb-6 flex items-center gap-2 lg:hidden">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                  <GraduationCap className="size-4 text-primary" />
-                </span>
+                <SchoolLogo
+                  schoolLogo={config.schoolLogo}
+                  wrapperClassName="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-primary/10"
+                  fallbackIconClassName="size-4 text-primary"
+                  size={32}
+                />
                 <span className="font-heading text-[15px] font-semibold text-foreground">
                   {config.schoolName}
                 </span>
@@ -126,6 +132,14 @@ export default async function LoginPage({
                   className="font-medium text-primary underline-offset-4 hover:underline"
                 >
                   Register now
+                </Link>
+              </p>
+              <p className="mt-3 text-center text-sm text-muted-foreground">
+                <Link
+                  href="/"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  ← Back to home
                 </Link>
               </p>
             </div>
