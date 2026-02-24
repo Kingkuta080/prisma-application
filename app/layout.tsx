@@ -1,34 +1,42 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Instrument_Sans, Fraunces } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/session-provider";
+import { getSchoolConfig, getSchoolColorStyleBlock } from "@/lib/school-config";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "School Enrollment Platform",
-  description: "Parent portal for school enrollment",
-};
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const config = getSchoolConfig();
+  return {
+    title: config.schoolName,
+    description: config.schoolDescription,
+  };
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const styleBlock = getSchoolColorStyleBlock();
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${instrumentSans.variable} ${fraunces.variable} antialiased`}
       >
+        <style dangerouslySetInnerHTML={{ __html: styleBlock }} />
         <SessionProvider>
           {children}
           <Toaster />

@@ -1,13 +1,25 @@
 import Link from "next/link";
+import { FooterLogo } from "./footer-logo";
 
-export function LandingFooter() {
+type LandingFooterProps = {
+  schoolName?: string;
+  schoolDescription?: string;
+  schoolLogo?: string;
+};
+
+export function LandingFooter({
+  schoolName = "School Enrollment Platform",
+  schoolDescription = "A public-facing enrollment experience designed for families.",
+  schoolLogo = "/logo.png",
+}: LandingFooterProps) {
   return (
     <footer className="border-t border-border/70 bg-card/60 px-4 py-10">
       <div className="mx-auto grid w-full max-w-6xl gap-6 md:grid-cols-3">
         <div>
-          <p className="text-lg font-semibold">School Enrollment Platform</p>
+          <FooterLogo schoolLogo={schoolLogo} alt={schoolName} />
+          <p className="mt-2 text-lg font-semibold">{schoolName}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            A public-facing enrollment experience designed for families.
+            {schoolDescription}
           </p>
         </div>
         <div>
@@ -37,8 +49,7 @@ export function LandingFooter() {
         </div>
       </div>
       <p className="mx-auto mt-8 w-full max-w-6xl text-xs text-muted-foreground">
-        © {new Date().getFullYear()} School Enrollment Platform. All rights
-        reserved.
+        © {new Date().getFullYear()} {schoolName}. All rights reserved.
       </p>
     </footer>
   );

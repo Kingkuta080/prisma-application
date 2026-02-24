@@ -3,8 +3,17 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SchoolLogo } from "@/components/school-logo";
 
-export function LandingNavbar() {
+type LandingNavbarProps = {
+  schoolName?: string;
+  schoolLogo?: string;
+};
+
+export function LandingNavbar({
+  schoolName = "School Enrollment Platform",
+  schoolLogo = "/logo.png",
+}: LandingNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -23,8 +32,12 @@ export function LandingNavbar() {
       }`}
     >
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="font-semibold tracking-tight">
-          School Enrollment Platform
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-semibold tracking-tight"
+        >
+          <SchoolLogo schoolLogo={schoolLogo} size={32} />
+          <span>{schoolName}</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <a href="#how-it-works" className="hover:text-foreground">

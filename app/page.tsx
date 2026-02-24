@@ -2,30 +2,77 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getSchoolConfig } from "@/lib/school-config";
 import { Button } from "@/components/ui/button";
 import { ClientHeader } from "@/components/client-header";
 import { DeadlineCountdown } from "@/components/dashboard/deadline-countdown";
 import { GuidelinesSection } from "@/components/dashboard/guidelines-section";
 import { ApplicationsTable } from "@/components/applications-table";
+import { LandingNavbar } from "@/components/landing/navbar";
+import { LandingHero } from "@/components/landing/hero";
+import { LandingJourney } from "@/components/landing/journey";
+import { LandingHighlights } from "@/components/landing/highlights";
+import { LandingDatesBanner } from "@/components/landing/dates-banner";
+import { LandingFaq } from "@/components/landing/faq";
+import { LandingFooter } from "@/components/landing/footer";
 
 export default async function HomePage() {
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch {
+    // Cold start / auth error: show landing
+  }
 
   if (!session?.user) {
+    let openSession: { closeAt: Date; amount: number; year: number } | null =
+      null;
+    try {
+      const sessions = await prisma.applicationSession.findMany({
+        where: {
+          openAt: { lte: new Date() },
+          closeAt: { gte: new Date() },
+        },
+        orderBy: { year: "desc" },
+        take: 1,
+      });
+      if (sessions[0]) {
+        openSession = {
+          closeAt: sessions[0].closeAt,
+          amount: Number(sessions[0].amount),
+          year: sessions[0].year,
+        };
+      }
+    } catch {
+      // DB error: still show landing without session data
+    }
+    const config = getSchoolConfig();
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-        <h1 className="text-2xl font-semibold">School Enrollment Platform</h1>
-        <p className="text-muted-foreground text-center max-w-md">
-          Sign in to manage applications.
-        </p>
-        <div className="flex gap-3">
-          <Button asChild>
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/register">Register</Link>
-          </Button>
-        </div>
+      <div className="flex min-h-screen flex-col">
+        <LandingNavbar
+          schoolName={config.schoolName}
+          schoolLogo={config.schoolLogo}
+        />
+        <main className="flex-1">
+          <LandingHero
+            hasSession={!!openSession}
+            yearLabel={openSession ? `Year ${openSession.year}` : undefined}
+            schoolName={config.schoolName}
+            schoolDescription={config.schoolDescription}
+          />
+          <LandingJourney />
+          <LandingHighlights />
+          <LandingDatesBanner
+            closeAt={openSession?.closeAt.toISOString()}
+            amount={openSession?.amount}
+          />
+          <LandingFaq />
+          <LandingFooter
+            schoolName={config.schoolName}
+            schoolDescription={config.schoolDescription}
+            schoolLogo={config.schoolLogo}
+          />
+        </main>
       </div>
     );
   }

@@ -108,14 +108,14 @@ export function ApplicationsTable({
                   {(app.status === "PAID" || app.status === "COMPLETED") && (
                     <Button size="sm" variant="link" asChild className="p-0 h-auto">
                       <a href={`/api/applications/${app.id}/form`} download>
-                        Print PDF receipt
+                        Download receipt
                       </a>
                     </Button>
                   )}
                   {app.admission && (
                     <Button size="sm" variant="link" asChild className="p-0 h-auto">
                       <a href={`/api/applications/${app.id}/admission-letter`} download>
-                        Print admission letter
+                        Download admission letter
                       </a>
                     </Button>
                   )}

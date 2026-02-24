@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -33,6 +33,8 @@ export function NewApplicationForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(10);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   const selectedSession = useMemo(
@@ -75,10 +77,30 @@ export function NewApplicationForm({
       setLoading(false);
       return;
     }
+    if (result?.applicationId) {
+      setApplicationId(result.applicationId);
+    }
     setLoading(false);
     toast.success("Application submitted");
+    setCountdown(10);
     setShowSuccessDialog(true);
   }
+
+  useEffect(() => {
+    if (!showSuccessDialog || countdown <= 0) return;
+    const t = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(t);
+          router.push("/");
+          router.refresh();
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [showSuccessDialog, router]);
 
   function handleNewApplication() {
     setShowSuccessDialog(false);
@@ -86,7 +108,7 @@ export function NewApplicationForm({
     router.refresh();
   }
 
-  function handleGoHome() {
+  function handlePayNow() {
     setShowSuccessDialog(false);
     router.push("/");
     router.refresh();
@@ -186,15 +208,16 @@ export function NewApplicationForm({
         <DialogHeader>
           <DialogTitle>Application submitted</DialogTitle>
           <DialogDescription>
-            Your application was submitted successfully. You can start another application or return to your dashboard.
+            Your application was submitted successfully. You can start another application or go to your dashboard to pay. Redirecting in {countdown} second{countdown !== 1 ? "s" : ""}…
           </DialogDescription>
         </DialogHeader>
+        <p className="text-center text-2xl font-semibold tabular-nums">{countdown}</p>
         <DialogFooter showCloseButton={false}>
           <Button onClick={handleNewApplication}>
             New application
           </Button>
-          <Button variant="outline" onClick={handleGoHome}>
-            Go home
+          <Button variant="outline" onClick={handlePayNow}>
+            Pay now
           </Button>
         </DialogFooter>
       </DialogContent>

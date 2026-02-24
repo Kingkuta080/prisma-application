@@ -6,9 +6,22 @@ import { Button } from "@/components/ui/button";
 type LandingHeroProps = {
   hasSession: boolean;
   yearLabel?: string;
+  schoolName?: string;
+  schoolDescription?: string;
 };
 
-export function LandingHero({ hasSession, yearLabel }: LandingHeroProps) {
+export function LandingHero({
+  hasSession,
+  yearLabel,
+  schoolName,
+  schoolDescription,
+}: LandingHeroProps) {
+  const title =
+    schoolName ?? "Your child's next chapter starts with clarity, not chaos.";
+  const subtitle =
+    schoolDescription ??
+    "Apply in minutes, pay securely, and track progress without paperwork overload. A calm enrollment experience for busy families.";
+
   return (
     <section className="relative overflow-hidden px-4 pb-16 pt-14">
       <div className="pointer-events-none absolute -left-16 -top-14 h-56 w-56 rounded-full bg-primary/20 blur-2xl" />
@@ -20,12 +33,9 @@ export function LandingHero({ hasSession, yearLabel }: LandingHeroProps) {
             Enrollment made human
           </p>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Your child&apos;s next chapter starts with clarity, not chaos.
+            {schoolName ? `${schoolName} — enrollment made simple` : title}
           </h1>
-          <p className="max-w-xl text-lg text-muted-foreground">
-            Apply in minutes, pay securely, and track progress without paperwork
-            overload. A calm enrollment experience for busy families.
-          </p>
+          <p className="max-w-xl text-lg text-muted-foreground">{subtitle}</p>
           <div className="flex flex-wrap gap-3">
             <Button asChild size="lg" className="shadow-sm">
               <Link href="/register">
