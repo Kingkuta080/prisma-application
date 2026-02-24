@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
-import { GraduationCap } from "lucide-react";
+import { FooterLogo } from "@/components/landing/footer-logo";
 
 type LandingFooterProps = {
   schoolName: string;
@@ -22,21 +21,7 @@ export function LandingFooter({
           {/* Brand column */}
           <div>
             <Link href="/" className="group mb-4 flex items-center gap-3">
-              <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/8 ring-1 ring-primary/15 transition group-hover:bg-primary/12">
-                <Image
-                  src={schoolLogo}
-                  alt=""
-                  fill
-                  className="object-contain p-1.5"
-                  sizes="36px"
-                  unoptimized={schoolLogo.startsWith("/") && !schoolLogo.endsWith(".svg")}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                    (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute("style");
-                  }}
-                />
-                <GraduationCap className="size-4 text-primary" style={{ display: "none" }} />
-              </span>
+              <FooterLogo schoolLogo={schoolLogo} />
               <span className="font-heading text-[16px] font-semibold text-foreground">
                 {schoolName}
               </span>
