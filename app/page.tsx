@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getSchoolConfig } from "@/lib/school-config";
@@ -25,16 +26,26 @@ import {
 
 export default async function HomePage() {
   const config = getSchoolConfig();
-  const [session, openSessions] = await Promise.all([
-    auth(),
-    prisma.applicationSession.findMany({
-      where: {
-        openAt: { lte: new Date() },
-        closeAt: { gte: new Date() },
-      },
-      orderBy: { year: "desc" },
-    }),
-  ]);
+
+  let session: Session | null = null;
+  let openSessions: Awaited<ReturnType<typeof prisma.applicationSession.findMany>> = [];
+
+  try {
+    [session, openSessions] = await Promise.all([
+      auth(),
+      prisma.applicationSession.findMany({
+        where: {
+          openAt: { lte: new Date() },
+          closeAt: { gte: new Date() },
+        },
+        orderBy: { year: "desc" },
+      }),
+    ]);
+  } catch {
+    // On Vercel/hosting: auth or DB may fail (env, cold start, timeout). Show landing.
+    session = null;
+    openSessions = [];
+  }
 
   const currentSession = openSessions[0] ?? null;
 
