@@ -17,7 +17,7 @@ export default auth((req) => {
   const hasPhone = !!user?.phone?.trim();
   const profileComplete = hasName && hasPhone;
 
-  if (pathname === "/") {
+  if (pathname === "/complete-profile") {
     if (req.auth && profileComplete) {
       return NextResponse.redirect(new URL("/", req.nextUrl));
     }
@@ -25,12 +25,12 @@ export default auth((req) => {
   }
 
   if (isParentPath(pathname) && req.auth && !profileComplete) {
-    return NextResponse.redirect(new URL("/", req.nextUrl));
+    return NextResponse.redirect(new URL("/complete-profile", req.nextUrl));
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/", "/"],
+  matcher: ["/", "/complete-profile"],
 };
