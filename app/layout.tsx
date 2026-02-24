@@ -17,6 +17,8 @@ const fraunces = Fraunces({
   style: ["normal", "italic"],
 });
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const config = getSchoolConfig();
   return {
@@ -38,12 +40,15 @@ export default function RootLayout({
       <body
         className={`${instrumentSans.variable} ${fraunces.variable} font-sans antialiased`}
       >
+        {/* Brand CSS variables first so they're defined before any content */}
+        <style
+          dangerouslySetInnerHTML={{ __html: colorStyle }}
+          data-school-theme
+        />
         <SessionProvider>
           {children}
           <Toaster />
         </SessionProvider>
-        {/* Injected last so it overrides globals.css and env-driven brand colors apply */}
-        <style dangerouslySetInnerHTML={{ __html: colorStyle }} />
       </body>
     </html>
   );

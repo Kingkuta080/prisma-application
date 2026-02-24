@@ -25,22 +25,26 @@ export type SchoolConfig = {
   colorAccent: string;
 };
 
+function fromEnv(key: string, fallback: string): string {
+  const raw = process.env[key]?.trim() ?? "";
+  const value = raw.replace(/^["']|["']$/g, "").trim();
+  return value || fallback;
+}
+
 export function getSchoolConfig(): SchoolConfig {
   return {
-    schoolName:
-      process.env.NEXT_PUBLIC_SCHOOL_NAME?.trim() || defaults.schoolName,
-    schoolDescription:
-      process.env.NEXT_PUBLIC_SCHOOL_DESCRIPTION?.trim() ||
-      defaults.schoolDescription,
-    schoolLogo:
-      process.env.NEXT_PUBLIC_SCHOOL_LOGO?.trim() || defaults.schoolLogo,
-    colorPrimary:
-      process.env.NEXT_PUBLIC_COLOR_PRIMARY?.trim() || defaults.colorPrimary,
-    colorSecondary:
-      process.env.NEXT_PUBLIC_COLOR_SECONDARY?.trim() ||
-      defaults.colorSecondary,
-    colorAccent:
-      process.env.NEXT_PUBLIC_COLOR_ACCENT?.trim() || defaults.colorAccent,
+    schoolName: fromEnv("NEXT_PUBLIC_SCHOOL_NAME", defaults.schoolName),
+    schoolDescription: fromEnv(
+      "NEXT_PUBLIC_SCHOOL_DESCRIPTION",
+      defaults.schoolDescription
+    ),
+    schoolLogo: fromEnv("NEXT_PUBLIC_SCHOOL_LOGO", defaults.schoolLogo),
+    colorPrimary: fromEnv("NEXT_PUBLIC_COLOR_PRIMARY", defaults.colorPrimary),
+    colorSecondary: fromEnv(
+      "NEXT_PUBLIC_COLOR_SECONDARY",
+      defaults.colorSecondary
+    ),
+    colorAccent: fromEnv("NEXT_PUBLIC_COLOR_ACCENT", defaults.colorAccent),
   };
 }
 
