@@ -7,12 +7,6 @@ const authConfig = {
     signIn: "/login",
   },
   callbacks: {
-    authorized({ auth, request }) {
-      // "/" is the public landing page; "/complete-profile" is the profile form
-      const pathname = request.nextUrl.pathname;
-      if (pathname === "/" || pathname === "/complete-profile") return true;
-      return !!auth;
-    },
     jwt({ token, user, trigger, session }) {
       const t = token as Record<string, unknown>;
       if (user) {

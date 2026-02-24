@@ -2,11 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // disable typescript errors
   typescript: {
     ignoreBuildErrors: true,
-  },
-  turbopack: {
-    root: process.cwd(),
   },
 };
 
