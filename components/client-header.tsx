@@ -55,17 +55,11 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
 
   return (
     <>
-      {/* Top bar only (no sidebar): same brand styling as cherry-heart */}
-      <header
-        className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between px-4 md:px-5"
-        style={{
-          background: "var(--brand-primary)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
+      {/* Top bar: white/neutral base, primary only for accents */}
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:px-5">
         <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/15 ring-1 ring-white/20">
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 ring-1 ring-primary/20">
               <Image
                 src={schoolLogo}
                 alt=""
@@ -79,11 +73,11 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
                 }}
               />
               <GraduationCap
-                className="size-4 text-white/80"
+                className="size-4 text-primary"
                 style={{ display: "none" }}
               />
             </span>
-            <span className="font-heading text-[15px] font-semibold text-white">
+            <span className="font-heading text-[15px] font-semibold text-foreground">
               {schoolName}
             </span>
           </Link>
@@ -98,8 +92,8 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
                   href={href}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-white/14 text-white"
-                      : "text-white/75 hover:bg-white/10 hover:text-white"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <Icon className="size-4" />
@@ -111,11 +105,11 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
 
           {/* User + Sign out (desktop) */}
           <div className="hidden items-center gap-3 md:flex">
-            <span className="text-sm text-white/80">{displayName}</span>
+            <span className="text-sm text-muted-foreground">{displayName}</span>
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <LogOut className="size-4" />
                 Sign out
@@ -126,7 +120,7 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/12 hover:text-white md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden"
             aria-label="Open menu"
           >
             <Menu className="size-5" />
@@ -141,20 +135,14 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div
-            className="absolute inset-y-0 right-0 w-72 flex flex-col"
-            style={{
-              background:
-                "linear-gradient(175deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 88%, black) 100%)",
-            }}
-          >
-            <div className="flex h-14 items-center justify-between px-5">
-              <span className="font-heading text-[15px] font-semibold text-white">
+          <div className="absolute inset-y-0 right-0 w-72 flex flex-col border-l border-border bg-background">
+            <div className="flex h-14 items-center justify-between border-b border-border px-5">
+              <span className="font-heading text-[15px] font-semibold text-foreground">
                 {schoolName}
               </span>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-white/70 hover:bg-white/12 hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                 aria-label="Close menu"
               >
                 <X className="size-5" />
@@ -170,8 +158,8 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                       active
-                        ? "bg-white/14 text-white"
-                        : "text-white/75 hover:bg-white/10 hover:text-white"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     <Icon className="size-4" />
@@ -180,22 +168,22 @@ export function ClientHeader({ user, schoolName, schoolLogo }: ClientHeaderProps
                 );
               })}
             </nav>
-            <div className="border-t border-white/10 px-3 py-4">
+            <div className="border-t border-border px-3 py-4">
               <div className="mb-2 flex items-center gap-3 rounded-xl px-3 py-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-semibold text-white ring-1 ring-white/30">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary ring-1 ring-primary/20">
                   {initials}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white/90">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {displayName}
                   </p>
-                  <p className="truncate text-[11px] text-white/45">{user.email}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
                 </div>
               </div>
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/45 transition-colors hover:bg-white/8 hover:text-white/80"
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <LogOut className="size-4" />
                   Sign out

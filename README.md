@@ -15,6 +15,10 @@ Copy `.env.example` to `.env` and set:
 
 Then run `npm run db:generate` and `npm run db:migrate` (or `db:push` for prototyping).
 
+### Login background (optional)
+
+To show a subtle background image on the login page (left panel), add `public/login-bg.jpg` (or `login-bg.webp` and reference it in `app/globals.css` in `.login-panel-bg`). If the file is missing, the panel uses a light neutral fill. Use a low-contrast, non-distracting image (e.g. soft pattern or blurred campus).
+
 ## Getting Started
 
 First, run the development server:
