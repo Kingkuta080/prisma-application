@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FileDown } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 
@@ -92,9 +93,19 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
             : "Your payment was completed successfully."
           : "The payment could not be completed or was not successful. You can try again from your dashboard."}
       </p>
-      <Button asChild>
-        <Link href="/">Back to dashboard</Link>
-      </Button>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {isSuccess && payment?.applicationId && (
+          <Button asChild variant="default" className="gap-2">
+            <a href={`/api/applications/${payment.applicationId}/form`} download>
+              <FileDown className="size-4" />
+              Download receipt
+            </a>
+          </Button>
+        )}
+        <Button asChild variant={isSuccess && payment?.applicationId ? "outline" : "default"}>
+          <Link href="/">Back to dashboard</Link>
+        </Button>
+      </div>
     </div>
   );
 }
