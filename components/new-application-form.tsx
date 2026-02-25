@@ -140,7 +140,7 @@ export function NewApplicationForm({
           <option value="">Select session</option>
           {sessions.map((s) => (
             <option key={s.id} value={s.id}>
-              Year {s.year} (amount: {s.amount})
+              Year {s.year} (amount: ₦{s.amount})
             </option>
           ))}
         </select>

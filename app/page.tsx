@@ -160,7 +160,7 @@ export default async function HomePage() {
           schoolLogo={config.schoolLogo}
         />
 
-        <div className="mx-auto max-w-5xl space-y-6 px-5 py-8">
+        <div className="mx-auto max-w-7xl space-y-6 px-5 py-8">
           {/* ── Enrollment Open CTA (top, above analytics) ──────────────────── */}
           {openSessions.length > 0 && (
             <div

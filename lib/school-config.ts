@@ -84,13 +84,24 @@ export function getAccentColorValue(): string {
   return toCssColor(getSchoolConfig().colorAccent);
 }
 
+/**
+ * Base URL for the app (used for server-side absolute URLs e.g. PDF logo).
+ * Prefer APP_URL, then NEXTAUTH_URL, then Vercel’s VERCEL_URL so logo works on Vercel without extra env.
+ */
+function getAppBaseUrl(): string {
+  const env = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "";
+  if (env) return env.replace(/\/$/, "");
+  const vercel = process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+  return "";
+}
+
 /** Resolved logo URL for PDF (absolute if possible for react-pdf Image). */
 export function getSchoolLogoUrl(): string | null {
   const config = getSchoolConfig();
-  const appUrl = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "";
   if (config.schoolLogo.startsWith("http")) return config.schoolLogo;
-  if (appUrl) {
-    const base = appUrl.replace(/\/$/, "");
+  const base = getAppBaseUrl();
+  if (base) {
     const path = config.schoolLogo.startsWith("/") ? config.schoolLogo : `/${config.schoolLogo}`;
     return `${base}${path}`;
   }

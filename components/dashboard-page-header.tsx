@@ -25,7 +25,7 @@ export function DashboardPageHeader({
       className="sticky top-0 z-10 border-b border-border/60 bg-card"
       style={{ boxShadow: "0 1px 0 rgba(36,19,108,0.04)" }}
     >
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-5 py-5">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5">
         <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
           <DashboardHeaderLogo
             schoolLogo={schoolLogo}
