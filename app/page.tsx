@@ -17,6 +17,8 @@ import { LandingDatesBanner } from "@/components/landing/dates-banner";
 import { LandingFaq } from "@/components/landing/faq";
 import { LandingFooter } from "@/components/landing/footer";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   let session = null;
   try {
