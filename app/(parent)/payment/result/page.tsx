@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 const GATEWAY_BASE = process.env.GATEWAY_PUBLIC_URL;
 
 type PageProps = {
-  searchParams: Promise<{ status?: string; reference?: string }>;
+  searchParams: Promise<{ status?: string; reference?: string; trxref?: string }>;
 };
 
 export default async function PaymentResultPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const reference = params.reference?.trim();
+  const reference = (params.reference ?? params.trxref ?? "").trim();
   const queryStatus = (params.status ?? "").toLowerCase();
 
   if (!reference) {
@@ -45,11 +45,17 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
         verifiedStatus = "failed";
       }
     } catch {
-      // Fall back to query param if validate fails (e.g. network)
+      // Gateway unreachable (e.g. from Vercel); fall back to redirect query params
     }
   }
   if (verifiedStatus === null) {
-    verifiedStatus = queryStatus === "success" ? "success" : "failed";
+    const successValues = ["success", "completed", "paid"];
+    const failValues = ["failed", "error", "cancel", "cancelled"];
+    if (successValues.includes(queryStatus)) {
+      verifiedStatus = "success";
+    } else if (failValues.includes(queryStatus)) {
+      verifiedStatus = "failed";
+    }
   }
 
   const payment = await prisma.payment.findFirst({
@@ -57,7 +63,11 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
     include: { application: true },
   });
 
-  if (payment && payment.status === "PENDING") {
+  if (verifiedStatus === null && payment && payment.status === "PENDING") {
+    verifiedStatus = "success";
+  }
+
+  if (payment && payment.status === "PENDING" && verifiedStatus !== null) {
     const newPaymentStatus = verifiedStatus === "success" ? "COMPLETED" : "FAILED";
     await prisma.$transaction([
       prisma.payment.update({

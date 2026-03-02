@@ -5,7 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 const GATEWAY_BASE = process.env.GATEWAY_PUBLIC_URL;
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
+function getAppUrl(): string {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
+  const vercel = process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+  return "http://localhost:3000";
+}
+const APP_URL = getAppUrl();
 const QUEUE_NAME = process.env.PAYMENT_QUEUE_NAME ?? "prisma_app_payments";
 
 type InitializeResult =
@@ -35,7 +41,7 @@ export async function initializePayment(
   if (!application) return { error: "Application not found" };
 
   const amountNaira = Number(application.session.amount);
-  const redirectUrl = `${APP_URL.replace(/\/$/, "")}/payment/result`;
+  const redirectUrl = `${APP_URL}/payment/result`;
 
   const initUrl = `${GATEWAY_BASE.replace(/\/$/, "")}/api/v1/paystack/initialize`;
   const body = {
