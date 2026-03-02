@@ -6,7 +6,7 @@ import {
   getPrimaryColorValue,
   getSecondaryColorValue,
   getAccentColorValue,
-  getSchoolLogoUrl,
+  getSchoolLogoAsDataUrl,
 } from "@/lib/school-config";
 
 type Props = {
@@ -21,7 +21,7 @@ export async function generateAdmissionLetterPdfBuffer(
   props: Props
 ): Promise<Buffer> {
   const config = getSchoolConfig();
-  const logoUrl = getSchoolLogoUrl();
+  const logoUrl = await getSchoolLogoAsDataUrl();
   const element = React.createElement(AdmissionLetterPdf, {
     ...props,
     schoolName: config.schoolName,

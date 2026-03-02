@@ -8,14 +8,7 @@ import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { DeadlineCountdown } from "@/components/dashboard/deadline-countdown";
 import { GuidelinesSection } from "@/components/dashboard/guidelines-section";
 import { ApplicationsTable } from "@/components/applications-table";
-import { LandingNavbar } from "@/components/landing/navbar";
 import { FolderOpen, CreditCard, GraduationCap, ArrowRight } from "lucide-react";
-import { LandingHero } from "@/components/landing/hero";
-import { LandingJourney } from "@/components/landing/journey";
-import { LandingHighlights } from "@/components/landing/highlights";
-import { LandingDatesBanner } from "@/components/landing/dates-banner";
-import { LandingFaq } from "@/components/landing/faq";
-import { LandingFooter } from "@/components/landing/footer";
 
 export const dynamic = "force-dynamic";
 
@@ -28,56 +21,7 @@ export default async function HomePage() {
   }
 
   if (!session?.user) {
-    let openSession: { closeAt: Date; amount: number; year: number } | null =
-      null;
-    try {
-      const sessions = await prisma.applicationSession.findMany({
-        where: {
-          openAt: { lte: new Date() },
-          closeAt: { gte: new Date() },
-        },
-        orderBy: { year: "desc" },
-        take: 1,
-      });
-      if (sessions[0]) {
-        openSession = {
-          closeAt: sessions[0].closeAt,
-          amount: Number(sessions[0].amount),
-          year: sessions[0].year,
-        };
-      }
-    } catch {
-      // DB error: still show landing without session data
-    }
-    const config = getSchoolConfig();
-    return (
-      <div className="min-h-screen bg-background">
-        <LandingNavbar
-          schoolName={config.schoolName}
-          schoolLogo={config.schoolLogo}
-        />
-        <main className="flex-1">
-          <LandingHero
-            hasSession={!!openSession}
-            yearLabel={openSession ? String(openSession.year) : undefined}
-            schoolName={config.schoolName}
-            schoolDescription={config.schoolDescription}
-          />
-          <LandingJourney />
-          <LandingHighlights />
-          <LandingDatesBanner
-            closeAt={openSession?.closeAt.toISOString()}
-            amount={openSession?.amount}
-          />
-          <LandingFaq />
-          <LandingFooter
-            schoolName={config.schoolName}
-            schoolDescription={config.schoolDescription}
-            schoolLogo={config.schoolLogo}
-          />
-        </main>
-      </div>
-    );
+    redirect("/login");
   }
 
   const hasName = !!session.user.name?.trim();
@@ -162,7 +106,7 @@ export default async function HomePage() {
           schoolLogo={config.schoolLogo}
         />
 
-        <div className="mx-auto max-w-7xl space-y-6 px-5 py-8">
+        <div className="mx-auto max-w-7xl space-y-4 px-4 py-5 sm:space-y-6 sm:px-5 sm:py-8">
           {/* ── Enrollment Open CTA (top, above analytics) ──────────────────── */}
           {openSessions.length > 0 && (
             <div
@@ -172,12 +116,15 @@ export default async function HomePage() {
                   "linear-gradient(135deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 75%, var(--brand-accent)) 100%)",
               }}
             >
-              <div className="flex flex-wrap items-center justify-between gap-5 px-6 py-5">
-                <div>
+              <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-5 sm:px-6 sm:py-5">
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
+                    Parent Portal · Session {currentSession?.year ?? "—"}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-white/60">
                     Enrollment Open
                   </p>
-                  <h2 className="mt-1 font-heading text-xl font-semibold text-white">
+                  <h2 className="mt-1 font-heading text-lg font-semibold text-white sm:text-xl">
                     Ready to apply for {currentSession?.year ?? "this year"}?
                   </h2>
                   <p className="mt-1 text-sm text-white/75">
@@ -186,7 +133,7 @@ export default async function HomePage() {
                 </div>
                 <Button
                   asChild
-                  className="shrink-0 bg-white font-medium text-primary shadow-md hover:bg-white/95"
+                  className="w-full shrink-0 bg-white font-medium text-primary shadow-md hover:bg-white/95 sm:w-auto"
                 >
                   <Link href="/new-application">
                     Start application
@@ -198,26 +145,26 @@ export default async function HomePage() {
           )}
 
           {/* ── Stat cards ────────────────────────────────────────────────── */}
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
             {statCards.map(({ label, value, icon: Icon, iconBg, iconColor }, i) => (
               <article
                 key={label}
-                className="animate-fade-up rounded-2xl border border-border bg-card p-5 shadow-sm"
+                className="animate-fade-up rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
                 style={{ animationDelay: `${i * 0.08}s` }}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       {label}
                     </p>
-                    <p className="mt-2 font-heading text-4xl font-semibold text-foreground">
+                    <p className="mt-1.5 font-heading text-3xl font-semibold text-foreground sm:mt-2 sm:text-4xl">
                       {value}
                     </p>
                   </div>
                   <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10 ${iconBg}`}
                   >
-                    <Icon className={`size-5 ${iconColor}`} />
+                    <Icon className={`size-4 sm:size-5 ${iconColor}`} />
                   </span>
                 </div>
               </article>
@@ -234,18 +181,18 @@ export default async function HomePage() {
           )}
 
           {/* ── Your Applications (left) | Application guidelines (right) ──── */}
-          <div className="animate-fade-up delay-225 grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="animate-fade-up delay-225 grid gap-4 lg:grid-cols-[1fr_340px] lg:gap-6">
             {/* Left: Your Applications */}
             <div className="min-w-0 rounded-2xl border border-border bg-card shadow-sm">
-              <div className="border-b border-border px-6 py-5">
-                <h2 className="font-heading text-lg font-semibold text-foreground">
+              <div className="border-b border-border px-4 py-4 sm:px-6 sm:py-5">
+                <h2 className="font-heading text-base font-semibold text-foreground sm:text-lg">
                   Your Applications
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                   Track status, payments, and download admission documents.
                 </p>
               </div>
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 <ApplicationsTable applications={applications} />
               </div>
             </div>

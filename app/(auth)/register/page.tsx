@@ -17,12 +17,12 @@ export default async function RegisterPage() {
           </p>
         </div>
         <RegisterForm />
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login" className="text-primary underline">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+          <span className="text-muted-foreground">Already have an account?</span>
+          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
             Sign in
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

@@ -107,3 +107,23 @@ export function getSchoolLogoUrl(): string | null {
   }
   return null;
 }
+
+/**
+ * Fetch logo and return as base64 data URL so PDFs show the logo on Vercel (no runtime URL fetch by react-pdf).
+ * Returns null if URL is missing or fetch fails.
+ */
+export async function getSchoolLogoAsDataUrl(): Promise<string | null> {
+  const url = getSchoolLogoUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") ?? "image/png";
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const mime = contentType.split(";")[0].trim() || "image/png";
+    return `data:${mime};base64,${base64}`;
+  } catch {
+    return null;
+  }
+}

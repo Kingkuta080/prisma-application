@@ -103,23 +103,22 @@ export default async function LoginPage({
             <LoginForm />
           </Suspense>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            No account?{" "}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm">
+            <span className="text-muted-foreground">No account?</span>
             <Link
               href="/register"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
               Register now
             </Link>
-          </p>
-          <p className="mt-3 text-center text-sm text-muted-foreground">
+            <span className="text-muted-foreground">·</span>
             <Link
               href="/"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              ← Back to home
+              Back to home
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>

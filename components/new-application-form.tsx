@@ -35,7 +35,8 @@ export function NewApplicationForm({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(10);
-  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  const activeSessionId = sessions[0]?.id ?? "";
+  const [selectedSessionId, setSelectedSessionId] = useState<string>(activeSessionId);
 
   const selectedSession = useMemo(
     () => sessions.find((s) => s.id === selectedSessionId),
@@ -134,10 +135,10 @@ export function NewApplicationForm({
           name="sessionId"
           required
           value={selectedSessionId}
-          onChange={(e) => setSelectedSessionId(e.target.value)}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          disabled
+          aria-label="Application session"
+          className="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-1 text-sm shadow-sm cursor-not-allowed"
         >
-          <option value="">Select session</option>
           {sessions.map((s) => (
             <option key={s.id} value={s.id}>
               Year {s.year} (amount: ₦{s.amount})
@@ -157,6 +158,7 @@ export function NewApplicationForm({
               id="class"
               name="class"
               required
+              aria-label="Class"
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Select class</option>
@@ -194,6 +196,7 @@ export function NewApplicationForm({
           id="wardGender"
           name="wardGender"
           required
+          aria-label="Gender"
           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           <option value="">Select</option>
@@ -221,18 +224,18 @@ export function NewApplicationForm({
           <DialogDescription>
             Your application was submitted successfully. You can start another application or go to your dashboard to pay.
           </DialogDescription>
+          {countdown > 0 && (
+            <p className="text-center text-sm font-medium tabular-nums text-muted-foreground pt-2">
+              Redirecting in {countdown}s
+            </p>
+          )}
         </DialogHeader>
         <DialogFooter showCloseButton={false}>
+          <Button variant="outline" onClick={handlePayNow}>
+            Go to home
+          </Button>
           <Button onClick={handleNewApplication}>
             New application
-          </Button>
-          <Button variant="outline" onClick={handlePayNow} className="gap-2">
-            Pay now
-            {countdown > 0 && (
-              <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-primary/20 px-1.5 font-semibold tabular-nums text-primary">
-                {countdown}
-              </span>
-            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -14,17 +14,17 @@ export function DashboardHeaderLogo({ schoolLogo, schoolName }: DashboardHeaderL
   const [failed, setFailed] = useState(false);
 
   return (
-    <Link href="/" className="flex shrink-0 items-center gap-3">
-      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-1 ring-primary/20">
+    <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-3">
+      <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 ring-1 ring-primary/20 sm:h-10 sm:w-10 sm:rounded-xl">
         {failed ? (
-          <GraduationCap className="size-5 text-primary" />
+          <GraduationCap className="size-4 text-primary sm:size-5" />
         ) : (
           <>
             <Image
               src={schoolLogo}
               alt=""
               fill
-              className="object-contain p-1.5"
+              className="object-contain p-1 sm:p-1.5"
               sizes="40px"
               unoptimized={schoolLogo.startsWith("/") && !schoolLogo.endsWith(".svg")}
               onError={() => setFailed(true)}
@@ -32,7 +32,7 @@ export function DashboardHeaderLogo({ schoolLogo, schoolName }: DashboardHeaderL
           </>
         )}
       </span>
-      <span className="font-heading text-lg font-semibold text-foreground">
+      <span className="font-heading truncate text-base font-semibold text-foreground sm:text-lg">
         {schoolName}
       </span>
     </Link>

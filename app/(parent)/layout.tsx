@@ -21,7 +21,7 @@ export default async function ParentLayout({
         schoolLogo={config.schoolLogo}
       />
       <main>
-        <div className="mx-auto max-w-5xl px-5 py-8">{children}</div>
+        <div className="mx-auto max-w-5xl px-4 py-5 sm:px-5 sm:py-8">{children}</div>
       </main>
     </div>
   );
