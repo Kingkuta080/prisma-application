@@ -226,7 +226,7 @@ export function NewApplicationForm({
           </DialogDescription>
           {countdown > 0 && (
             <p className="text-center text-sm font-medium tabular-nums text-muted-foreground pt-2">
-              Redirecting in {countdown}s
+              Redirecting in ({countdown}s)
             </p>
           )}
         </DialogHeader>
