@@ -21,7 +21,10 @@ export async function GET(
       id,
       userId: session.user.id,
     },
-    include: { session: true, payments: true },
+    include: {
+      session: true,
+      payments: { orderBy: { createdAt: "desc" } },
+    },
   });
 
   if (!application) {
@@ -37,11 +40,20 @@ export async function GET(
   }
 
   const latestPayment = application.payments[0] ?? null;
+  const paymentStatusForReceipt =
+    latestPayment?.status === "COMPLETED"
+      ? "PAID"
+      : latestPayment?.status === "FAILED"
+        ? "FAILED"
+        : latestPayment?.status
+          ? String(latestPayment.status)
+          : application.status === "PAID" || application.status === "COMPLETED"
+            ? "PAID"
+            : null;
   const amount = Number(application.session.amount);
   const paymentDate = latestPayment?.createdAt
     ? latestPayment.createdAt.toISOString().slice(0, 10)
     : null;
-  const paymentStatus = latestPayment?.status ?? null;
 
   try {
     const buffer = await generateApplicationPdfBuffer({
@@ -53,7 +65,7 @@ export async function GET(
       class: application.class,
       amount,
       paymentDate,
-      paymentStatus: paymentStatus ? String(paymentStatus) : null,
+      paymentStatus: paymentStatusForReceipt,
     });
 
     return new NextResponse(new Uint8Array(buffer), {

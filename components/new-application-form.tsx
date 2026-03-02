@@ -34,7 +34,7 @@ export function NewApplicationForm({
   const [loading, setLoading] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(5);
   const activeSessionId = sessions[0]?.id ?? "";
   const [selectedSessionId, setSelectedSessionId] = useState<string>(activeSessionId);
 

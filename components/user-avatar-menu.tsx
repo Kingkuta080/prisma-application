@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
@@ -9,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { signOutAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 
 type UserAvatarMenuProps = {
@@ -73,17 +73,15 @@ export function UserAvatarMenu({ user }: UserAvatarMenuProps) {
           </div>
         )}
         <DropdownMenuSeparator />
-        <form action={signOutAction}>
-          <DropdownMenuItem asChild>
-            <button
-              type="submit"
-              className="w-full cursor-pointer flex items-center gap-2"
-            >
-              <LogOut className="size-4" />
-              Sign out
-            </button>
-          </DropdownMenuItem>
-        </form>
+        <DropdownMenuItem asChild>
+          <Link
+            href="/api/auth/signout?callbackUrl=/login"
+            className="flex w-full cursor-pointer items-center gap-2"
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

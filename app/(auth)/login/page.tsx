@@ -50,6 +50,30 @@ export default async function LoginPage({
             </p>
           </div>
 
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
+              Application guidelines
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
+                Submit one application per child for the selected enrollment session.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
+                Ensure all personal details are accurate before submitting — changes may require re-application.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
+                Payment of the application fee is required to complete and confirm your submission.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
+                Once paid, download your receipt from your dashboard. Admission letters will be available when decisions are released.
+              </li>
+            </ul>
+          </div>
+
           <div>
             <div className="rounded-xl border border-border bg-card/80 px-4 py-3 shadow-sm">
               <p className="text-xs text-muted-foreground">
