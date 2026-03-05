@@ -1,34 +1,44 @@
 import type { Metadata } from "next";
-import { DM_Sans, Outfit } from "next/font/google";
+import { Instrument_Sans, Fraunces } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/session-provider";
+import { getSchoolConfig, getSchoolColorStyleBlock } from "@/lib/school-config";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-sans",
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
   subsets: ["latin"],
 });
 
-const outfit = Outfit({
-  variable: "--font-heading",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "900"],
+  style: ["normal", "italic"],
 });
 
-export const metadata: Metadata = {
-  title: "School Enrollment Platform",
-  description: "Parent portal for school enrollment",
-};
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const config = getSchoolConfig();
+  return {
+    title: config.schoolName,
+    description: config.schoolDescription,
+  };
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const styleBlock = getSchoolColorStyleBlock();
   return (
     <html lang="en">
       <body
-        className={`${dmSans.variable} ${outfit.variable} antialiased`}
+        className={`${instrumentSans.variable} ${fraunces.variable} font-sans antialiased`}
       >
+        <style dangerouslySetInnerHTML={{ __html: styleBlock }} />
         <SessionProvider>
           {children}
           <Toaster />

@@ -129,14 +129,15 @@ model Application {
 }
 
 model Payment {
-  id            String           @id @default(cuid())
-  applicationId String          @map("application_id")
+  id            String             @id @default(cuid())
+  applicationId String             @map("application_id")
   reference     String?
-  amount        Decimal          @db.Decimal(10, 2)
-  status        PaymentStatus    @default(PENDING)
-  verifiedBy    PaymentVerifiedBy? @map("verified_by")
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
+  amount        Decimal             @db.Decimal(10, 2)
+  currency      String?             @default("NGN")
+  status        PaymentStatus      @default(PENDING)
+  verifiedBy    PaymentVerifiedBy?  @map("verified_by")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 

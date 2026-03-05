@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -33,7 +33,10 @@ export function NewApplicationForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(5);
+  const activeSessionId = sessions[0]?.id ?? "";
+  const [selectedSessionId, setSelectedSessionId] = useState<string>(activeSessionId);
 
   const selectedSession = useMemo(
     () => sessions.find((s) => s.id === selectedSessionId),
@@ -75,10 +78,31 @@ export function NewApplicationForm({
       setLoading(false);
       return;
     }
+    if (result?.applicationId) {
+      setApplicationId(result.applicationId);
+    }
     setLoading(false);
     toast.success("Application submitted");
+    setCountdown(10);
     setShowSuccessDialog(true);
   }
+
+  useEffect(() => {
+    if (!showSuccessDialog || countdown <= 0) return;
+    const t = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(t);
+          setShowSuccessDialog(false);
+          router.push("/");
+          router.refresh();
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [showSuccessDialog, router]);
 
   function handleNewApplication() {
     setShowSuccessDialog(false);
@@ -86,7 +110,7 @@ export function NewApplicationForm({
     router.refresh();
   }
 
-  function handleGoHome() {
+  function handlePayNow() {
     setShowSuccessDialog(false);
     router.push("/");
     router.refresh();
@@ -94,131 +118,124 @@ export function NewApplicationForm({
 
   return (
     <>
-      <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Step 1 of 3
-          </p>
-          <div className="h-2 rounded-full bg-muted">
-            <div
-              className={`h-2 rounded-full bg-primary transition-all ${
-                selectedSessionId ? "w-2/3" : "w-1/3"
-              }`}
-            />
+    <div className="relative">
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-[2px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="size-9 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm font-medium text-muted-foreground">Submitting application…</p>
           </div>
         </div>
-
-        <div className="rounded-xl border border-border bg-background/80 p-4">
-          <h3 className="mb-3 text-sm font-medium">Session details</h3>
-          <div className="space-y-2">
-            <Label htmlFor="sessionId">Session</Label>
+      )}
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="sessionId">Session</Label>
+        <select
+          id="sessionId"
+          name="sessionId"
+          required
+          value={selectedSessionId}
+          disabled
+          aria-label="Application session"
+          className="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-1 text-sm shadow-sm cursor-not-allowed"
+        >
+          {sessions.map((s) => (
+            <option key={s.id} value={s.id}>
+              Year {s.year} (amount: ₦{s.amount})
+            </option>
+          ))}
+        </select>
+      </div>
+      {selectedSessionId && (
+        <div className="space-y-2">
+          <Label htmlFor="class">Class</Label>
+          {classOptions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No classes configured for this session.
+            </p>
+          ) : (
             <select
-              id="sessionId"
-              name="sessionId"
+              id="class"
+              name="class"
               required
-              value={selectedSessionId}
-              onChange={(e) => setSelectedSessionId(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              aria-label="Class"
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
-              <option value="">Select session</option>
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  Year {s.year} (amount: {s.amount})
+              <option value="">Select class</option>
+              {classOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
                 </option>
               ))}
             </select>
-          </div>
+          )}
         </div>
-
-        {selectedSessionId && (
-          <div className="rounded-xl border border-border bg-background/80 p-4">
-            <h3 className="mb-3 text-sm font-medium">Class selection</h3>
-            <div className="space-y-2">
-              <Label htmlFor="class">Class</Label>
-              {classOptions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No classes configured for this session.
-                </p>
-              ) : (
-                <select
-                  id="class"
-                  name="class"
-                  required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Select class</option>
-                  {classOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="rounded-xl border border-border bg-background/80 p-4">
-          <h3 className="mb-3 text-sm font-medium">Child information</h3>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="wardName">Child name</Label>
-              <Input
-                id="wardName"
-                name="wardName"
-                type="text"
-                required
-                placeholder="Full name"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="wardDob">Date of birth</Label>
-                <Input id="wardDob" name="wardDob" type="date" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="wardGender">Gender</Label>
-                <select
-                  id="wardGender"
-                  name="wardGender"
-                  required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <div className="flex gap-2">
-          <Button type="submit" disabled={loading}>
-            {loading ? "Submitting…" : "Submit application"}
-          </Button>
-          <Button type="button" variant="outline" asChild>
-            <Link href="/">Cancel</Link>
-          </Button>
-        </div>
-      </form>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="wardName">Child name</Label>
+        <Input
+          id="wardName"
+          name="wardName"
+          type="text"
+          required
+          placeholder="Full name"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="wardDob">Date of birth</Label>
+        <Input
+          id="wardDob"
+          name="wardDob"
+          type="date"
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="wardGender">Gender</Label>
+        <select
+          id="wardGender"
+          name="wardGender"
+          required
+          aria-label="Gender"
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <div className="flex gap-2">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Submitting…" : "Submit application"}
+        </Button>
+        <Button type="button" variant="outline" asChild>
+          <Link href="/">Cancel</Link>
+        </Button>
+      </div>
+    </form>
+    </div>
 
     <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
       <DialogContent showCloseButton>
         <DialogHeader>
           <DialogTitle>Application submitted</DialogTitle>
           <DialogDescription>
-            Your application was submitted successfully. You can start another application or return to your dashboard.
+            Your application was submitted successfully. You can start another application or go to your dashboard to pay.
           </DialogDescription>
+          {countdown > 0 && (
+            <p className="text-center text-sm font-medium tabular-nums text-muted-foreground pt-2">
+              Redirecting in ({countdown}s)
+            </p>
+          )}
         </DialogHeader>
         <DialogFooter showCloseButton={false}>
+          <Button variant="outline" onClick={handlePayNow}>
+            Go to home
+          </Button>
           <Button onClick={handleNewApplication}>
             New application
-          </Button>
-          <Button variant="outline" onClick={handleGoHome}>
-            Go home
           </Button>
         </DialogFooter>
       </DialogContent>

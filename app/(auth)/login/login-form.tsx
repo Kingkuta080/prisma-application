@@ -92,26 +92,20 @@ export function LoginForm() {
             required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" disabled={loading}>
+            {loading ? "Signing in…" : "Sign in"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading}
+            onClick={() => signIn("google", { callbackUrl })}
+          >
+            Google
+          </Button>
+        </div>
       </form>
-      <div className="flex items-center gap-2">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-xs uppercase tracking-wide text-muted-foreground">
-          or
-        </span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full bg-background"
-        disabled={loading}
-        onClick={() => signIn("google", { callbackUrl })}
-      >
-        Sign in with Google
-      </Button>
 
       <Dialog open={!!errorMessage} onOpenChange={(open) => !open && setErrorMessage(null)}>
         <DialogContent showCloseButton={true}>

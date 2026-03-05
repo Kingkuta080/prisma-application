@@ -122,5 +122,6 @@ export async function updateProfile(data: { name: string; phone: string }) {
 }
 
 export async function signOutAction() {
-  await signOut({ redirectTo: "/" });
+  await signOut({ redirect: false });
+  redirect("/login");
 }

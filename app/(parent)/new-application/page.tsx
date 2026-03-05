@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { NewApplicationForm } from "@/components/new-application-form";
 
 export default async function NewApplicationPage() {
@@ -34,14 +36,26 @@ export default async function NewApplicationPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6 py-8">
-      <div>
-        <h1 className="text-xl font-semibold">Start new application</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Submit an enrollment application for your ward.
-        </p>
+    <div className="flex min-h-[50vh] flex-col items-center justify-center py-8">
+      <div className="mb-4 w-full max-w-md">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground">
+          <Link href="/">
+            <ArrowLeft className="size-4" />
+            Back to dashboard
+          </Link>
+        </Button>
       </div>
-      <NewApplicationForm sessions={serializedSessions} />
+      <Card className="w-full max-w-md border border-border bg-white shadow-md">
+        <CardHeader>
+          <h1 className="text-xl font-semibold">Start new application</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Submit an enrollment application for your ward.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <NewApplicationForm sessions={serializedSessions} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

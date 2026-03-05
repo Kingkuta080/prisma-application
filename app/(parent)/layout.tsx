@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { ClientHeader } from "@/components/client-header";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
+import { getSchoolConfig } from "@/lib/school-config";
 
 export default async function ParentLayout({
   children,
@@ -10,10 +11,18 @@ export default async function ParentLayout({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  const config = getSchoolConfig();
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <ClientHeader user={session.user} />
-      <main className="flex-1 container p-4">{children}</main>
+    <div className="min-h-screen bg-background">
+      <DashboardPageHeader
+        user={session.user}
+        schoolName={config.schoolName}
+        schoolLogo={config.schoolLogo}
+      />
+      <main>
+        <div className="mx-auto max-w-5xl px-4 py-5 sm:px-5 sm:py-8">{children}</div>
+      </main>
     </div>
   );
 }

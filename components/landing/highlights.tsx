@@ -1,50 +1,87 @@
-const HIGHLIGHTS = [
+import { Monitor, Lock, FileDown, Search } from "lucide-react";
+
+const FEATURES = [
   {
-    title: "Simple online process",
-    text: "No printed forms and no office queues. Everything stays in one dashboard.",
-    className: "md:col-span-2 bg-secondary",
+    icon: Monitor,
+    title: "Everything online",
+    description:
+      "No printed forms, no office queues. Apply, pay, and track your application entirely from your phone or laptop.",
+    colSpan: "md:col-span-2",
+    bg: "bg-secondary",
+    iconBg: "bg-primary/10 text-primary",
   },
   {
+    icon: Lock,
     title: "Secure payments",
-    text: "Payment records are tracked with clear status and verification history.",
-    className: "bg-card",
+    description:
+      "Every transaction is processed through our verified gateway with full status tracking.",
+    colSpan: "",
+    bg: "bg-card",
+    iconBg: "bg-[#fff7ed] text-[#c2410c]",
   },
   {
-    title: "Instant PDFs",
-    text: "Receipts and letters are generated as downloadable documents.",
-    className: "bg-accent/30",
+    icon: FileDown,
+    title: "Instant documents",
+    description:
+      "Receipts and admission letters are generated as print-ready PDFs the moment they're ready.",
+    colSpan: "",
+    bg: "bg-card",
+    iconBg: "bg-[#f0fdf4] text-[#15803d]",
   },
   {
-    title: "Application tracking",
-    text: "Know exactly what stage each application is in at any time.",
-    className: "md:col-span-2 bg-primary/10",
+    icon: Search,
+    title: "Real-time tracking",
+    description:
+      "Always know exactly where your application stands—submitted, paid, or admitted.",
+    colSpan: "md:col-span-2",
+    bg: "bg-primary/5",
+    iconBg: "bg-[#eef2ff] text-[#4338ca]",
   },
 ];
 
 export function LandingHighlights() {
   return (
-    <section id="highlights" className="px-4 py-16">
+    <section id="highlights" className="bg-background px-5 py-24">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="mb-8 max-w-2xl">
-          <p className="text-sm uppercase tracking-wide text-primary">
-            Why families choose this platform
+        {/* Section header */}
+        <div className="mb-14 flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-xl">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary">
+              Platform Highlights
+            </p>
+            <h2 className="font-heading text-3xl font-semibold text-foreground sm:text-4xl">
+              Built to remove friction from every step
+            </h2>
+          </div>
+          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+            Designed for international school families who expect clarity,
+            speed, and transparency throughout enrollment.
           </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-            Built for clarity, speed, and peace of mind
-          </h2>
         </div>
+
+        {/* Bento grid */}
         <div className="grid gap-4 md:grid-cols-3">
-          {HIGHLIGHTS.map((item) => (
-            <article
-              key={item.title}
-              className={`rounded-2xl border border-border p-6 shadow-sm ${item.className}`}
-            >
-              <h3 className="text-xl font-medium">{item.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {item.text}
-              </p>
-            </article>
-          ))}
+          {FEATURES.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article
+                key={item.title}
+                className={`group rounded-2xl border border-border p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${item.colSpan} ${item.bg}`}
+              >
+                <span
+                  className={`mb-5 flex h-11 w-11 items-center justify-center rounded-xl ${item.iconBg}`}
+                >
+                  <Icon className="size-5" />
+                </span>
+                <h3 className="font-heading text-xl font-semibold text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
+                  {item.description}
+                </p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
