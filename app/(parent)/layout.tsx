@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { getSchoolConfig } from "@/lib/school-config";
+import { ClientHeader } from "@/components/client-header";
 
 export default async function ParentLayout({
   children,
@@ -14,15 +14,17 @@ export default async function ParentLayout({
   const config = getSchoolConfig();
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardPageHeader
+    <>
+      <ClientHeader
         user={session.user}
         schoolName={config.schoolName}
         schoolLogo={config.schoolLogo}
       />
-      <main>
-        <div className="mx-auto max-w-5xl px-4 py-5 sm:px-5 sm:py-8">{children}</div>
+      <main className="min-h-[calc(100vh-3.5rem)] bg-[#f9fafb]">
+        <div className="mx-auto max-w-5xl px-3 py-5 sm:px-6 sm:py-8">
+          {children}
+        </div>
       </main>
-    </div>
+    </>
   );
 }

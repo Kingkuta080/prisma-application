@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
@@ -16,14 +16,13 @@ export async function GET(
   }
 
   const { id } = await params;
+
   const application = await prisma.application.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
+    where: { id, userId: session.user.id },
     include: {
       session: true,
       payments: { orderBy: { createdAt: "desc" } },
+      user: true,
     },
   });
 
@@ -39,21 +38,33 @@ export async function GET(
     );
   }
 
-  const latestPayment = application.payments[0] ?? null;
+  // Completed payment (for reference + date)
+  const completedPayment =
+    application.payments.find((p) => p.status === "COMPLETED") ??
+    application.payments[0] ??
+    null;
+
   const paymentStatusForReceipt =
-    latestPayment?.status === "COMPLETED"
+    completedPayment?.status === "COMPLETED"
       ? "PAID"
-      : latestPayment?.status === "FAILED"
+      : completedPayment?.status === "FAILED"
         ? "FAILED"
-        : latestPayment?.status
-          ? String(latestPayment.status)
+        : completedPayment?.status
+          ? String(completedPayment.status)
           : application.status === "PAID" || application.status === "COMPLETED"
             ? "PAID"
             : null;
+
   const amount = Number(application.session.amount);
-  const paymentDate = latestPayment?.createdAt
-    ? latestPayment.createdAt.toISOString().slice(0, 10)
+  const paymentDate = completedPayment?.createdAt
+    ? completedPayment.createdAt.toISOString().slice(0, 10)
     : null;
+  const paymentReference = completedPayment?.reference ?? null;
+
+  // Parent / guardian info from the user record
+  const parentName = application.user.name ?? null;
+  const parentEmail = application.user.email ?? null;
+  const parentPhone = application.user.phone ?? null;
 
   try {
     const buffer = await generateApplicationPdfBuffer({
@@ -66,12 +77,16 @@ export async function GET(
       amount,
       paymentDate,
       paymentStatus: paymentStatusForReceipt,
+      paymentReference,
+      parentName,
+      parentEmail,
+      parentPhone,
     });
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="application-${id}.pdf"`,
+        "Content-Disposition": `attachment; filename="receipt-${id}.pdf"`,
       },
     });
   } catch (e) {

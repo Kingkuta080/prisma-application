@@ -1,7 +1,7 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { LogoutConfirmModal } from "@/components/logout-confirm-modal";
 
 type UserAvatarMenuProps = {
   user: { name?: string | null; email?: string | null; image?: string | null };
@@ -34,8 +35,10 @@ function getInitials(name?: string | null, email?: string | null): string {
 
 export function UserAvatarMenu({ user }: UserAvatarMenuProps) {
   const initials = getInitials(user.name, user.email);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -73,16 +76,19 @@ export function UserAvatarMenu({ user }: UserAvatarMenuProps) {
           </div>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link
-            href="/api/auth/signout?callbackUrl=/login"
-            className="flex w-full cursor-pointer items-center gap-2"
-          >
-            <LogOut className="size-4" />
-            Sign out
-          </Link>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            setLogoutModalOpen(true);
+          }}
+          className="flex cursor-pointer items-center gap-2"
+        >
+          <LogOut className="size-4" />
+          Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <LogoutConfirmModal open={logoutModalOpen} onOpenChange={setLogoutModalOpen} />
+    </>
   );
 }

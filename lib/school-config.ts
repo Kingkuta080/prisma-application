@@ -88,9 +88,9 @@ export function getAccentColorValue(): string {
  * Base URL for the app (used for server-side absolute URLs e.g. PDF logo).
  * Prefer APP_URL, then NEXTAUTH_URL, then Vercel’s VERCEL_URL so logo works on Vercel without extra env.
  */
-function getAppBaseUrl(): string {
+export function getAppBaseUrl(): string {
   const env = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "";
-  if (env) return env.replace(/\/$/, "");
+  if (env) return String(env).replace(/\/$/, "");
   const vercel = process.env.VERCEL_URL;
   if (vercel) return `https://${vercel}`;
   return "";

@@ -9,6 +9,8 @@ type DeadlineCountdownProps = {
   closeAt: string;
   compact?: boolean;
   inverse?: boolean;
+  /** For login left panel: "Application Deadline" / "Enrollment closes soon" + countdown */
+  variant?: "default" | "loginPanel";
 };
 
 function getTimeLeft(closeAt: Date) {
@@ -29,6 +31,7 @@ export function DeadlineCountdown({
   closeAt,
   compact = false,
   inverse = false,
+  variant = "default",
 }: DeadlineCountdownProps) {
   const [left, setLeft] = useState(() => getTimeLeft(new Date(closeAt)));
   const [flashVisible, setFlashVisible] = useState(true);
@@ -49,6 +52,38 @@ export function DeadlineCountdown({
     return () => clearInterval(t);
   }, [isAlertMode]);
 
+  if (variant === "loginPanel") {
+    if (left.closed) {
+      return (
+        <div className="text-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wider text-foreground/80">Application Deadline</p>
+          <p className="mt-1 font-heading text-lg font-semibold text-foreground">Enrollment closes soon</p>
+          <p className="mt-3 text-sm text-muted-foreground">Applications for this session have closed.</p>
+        </div>
+      );
+    }
+    return (
+      <div className="text-foreground">
+        <p className="text-xs font-semibold uppercase tracking-wider text-foreground/80">Application Deadline</p>
+        <p className="mt-1 font-heading text-lg font-semibold text-foreground">Enrollment closes soon</p>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { value: left.days, label: "Days" },
+            { value: left.hours, label: "Hours" },
+            { value: left.minutes, label: "Minutes" },
+          ].map(({ value, label }) => (
+            <div key={label} className="rounded-xl border border-border bg-card/80 px-3 py-4 text-center shadow-sm">
+              <p className="font-heading text-2xl font-semibold tabular-nums text-foreground">
+                {String(value).padStart(2, "0")}
+              </p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (left.closed) {
     return (
       <p
@@ -68,13 +103,42 @@ export function DeadlineCountdown({
         <span className={`text-xs font-semibold uppercase tracking-wider ${inverse ? "text-white/55" : "text-muted-foreground"}`}>
           Deadline in
         </span>
-        <p
-          className={`mt-1 font-heading text-2xl font-semibold transition-opacity duration-75 ${
+        {/* Responsive countdown: pill tiles on mobile, single line on larger screens */}
+        <div
+          className={`mt-1.5 flex flex-wrap gap-1.5 transition-opacity duration-75 sm:block ${
             isAlertMode && !flashVisible ? "opacity-0" : "opacity-100"
-          } ${isAlertMode ? (inverse ? "text-red-300" : "text-red-600") : inverse ? "text-white" : "text-foreground"}`}
+          }`}
         >
-          {left.days}d {left.hours}h {left.minutes}m {left.seconds}s
-         </p>
+          {/* Mobile: small tiles */}
+          <div className="flex gap-1.5 sm:hidden">
+            {[
+              { value: left.days, label: "d" },
+              { value: left.hours, label: "h" },
+              { value: left.minutes, label: "m" },
+              { value: left.seconds, label: "s" },
+            ].map(({ value, label }) => (
+              <span
+                key={label}
+                className={`inline-flex items-baseline gap-0.5 rounded-lg px-2 py-1 text-sm font-bold tabular-nums ${
+                  isAlertMode
+                    ? "bg-white/20 text-red-200"
+                    : "bg-white/15 text-white"
+                }`}
+              >
+                {String(value).padStart(2, "0")}
+                <span className="text-[10px] font-normal opacity-75">{label}</span>
+              </span>
+            ))}
+          </div>
+          {/* Desktop: single line */}
+          <p
+            className={`hidden font-heading text-2xl font-semibold sm:block ${
+              isAlertMode ? (inverse ? "text-red-300" : "text-red-600") : inverse ? "text-white" : "text-foreground"
+            }`}
+          >
+            {left.days}d {left.hours}h {left.minutes}m {left.seconds}s
+          </p>
+        </div>
       </div>
     );
   }

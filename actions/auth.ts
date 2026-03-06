@@ -43,7 +43,6 @@ function randomHexToken(bytes = 32): string {
 export async function register(formData: FormData) {
   const email = formData.get("email") as string | null;
   const password = formData.get("password") as string | null;
-  const name = formData.get("name") as string | null;
 
   if (!email?.trim() || !password?.trim()) {
     return { error: "Email and password are required" };
@@ -62,7 +61,7 @@ export async function register(formData: FormData) {
     data: {
       email: emailNorm,
       password: hashed,
-      name: name?.trim() || null,
+      name: null,
       emailVerified: null,
     },
   });
@@ -101,12 +100,22 @@ export async function resendVerification(email: string) {
   return { ok: true };
 }
 
-export async function updateProfile(data: { name: string; phone: string }) {
+export type UpdateProfileData = {
+  name: string;
+  phone: string;
+  guardianFullName?: string;
+  residence?: string;
+  occupation?: string;
+  guardianPhone?: string;
+  guardianEmail?: string;
+  motherPhone?: string;
+};
+
+export async function updateProfile(data: UpdateProfileData) {
   const { name, phone } = data;
   if (!name?.trim() || !phone?.trim()) {
     return { error: "Full name and phone are required" };
   }
-  // Resolve session to get userId server-side
   const { auth } = await import("@/auth");
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
@@ -116,6 +125,12 @@ export async function updateProfile(data: { name: string; phone: string }) {
     data: {
       name: name.trim(),
       phone: phone.trim(),
+      guardianFullName: data.guardianFullName?.trim() ?? undefined,
+      residence: data.residence?.trim() ?? undefined,
+      occupation: data.occupation?.trim() ?? undefined,
+      guardianPhone: data.guardianPhone?.trim() ?? undefined,
+      guardianEmail: data.guardianEmail?.trim() ?? undefined,
+      motherPhone: data.motherPhone?.trim() ?? undefined,
     },
   });
   return { ok: true };

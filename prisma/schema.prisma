@@ -37,17 +37,23 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  phone         String?
-  password      String?   @db.Text // hashed; for Credentials provider
-  suspended     Boolean   @default(false)
-  accounts      Account[]
-  sessions      Session[]
-  applications  Application[]
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?   @unique
+  emailVerified     DateTime? @map("email_verified")
+  image             String?
+  phone             String?
+  password          String?   @db.Text // hashed; for Credentials provider
+  suspended         Boolean   @default(false)
+  guardianFullName  String?   @map("guardian_full_name")
+  residence         String?   @db.Text
+  occupation        String?
+  guardianPhone     String?   @map("guardian_phone")
+  guardianEmail     String?   @map("guardian_email")
+  motherPhone       String?   @map("mother_phone")
+  accounts          Account[]
+  sessions          Session[]
+  applications      Application[]
 
   @@map("users")
 }
@@ -59,6 +65,16 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model OneTimeLoginToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("one_time_login_tokens")
 }
 
 // ---- SEP domain ----
@@ -109,23 +125,46 @@ model ApplicationSession {
 }
 
 model Application {
-  id         String    @id @default(cuid())
-  userId     String    @map("user_id")
-  sessionId String    @map("session_id")
-  wardName   String    @map("ward_name")
-  wardDob    DateTime  @map("ward_dob") @db.Date
-  wardGender String    @map("ward_gender")
-  class      String    @map("class")
-  status     AppStatus @default(SUBMITTED)
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  sessionId    String    @map("session_id")
+  wardName     String    @map("ward_name")
+  firstName    String?   @map("first_name")
+  lastName     String?   @map("last_name")
+  middleName   String?   @map("middle_name")
+  wardDob      DateTime  @map("ward_dob") @db.Date
+  wardGender   String    @map("ward_gender")
+  class        String    @map("class")
+  stateOfOrigin String?  @map("state_of_origin")
+  lga          String?
+  nationality  String?
+  religion     String?
+  medicalInfo  String?   @map("medical_info") @db.Text
+  photoUrl     String?   @map("photo_url") @db.Text
+  status       AppStatus @default(SUBMITTED)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  session   ApplicationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  payments  Payment[]
-  admission Admission?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session        ApplicationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  payments       Payment[]
+  admission      Admission?
+  previousSchools PreviousSchool[]
 
   @@map("applications")
+}
+
+model PreviousSchool {
+  id             String     @id @default(cuid())
+  applicationId   String     @map("application_id")
+  schoolName      String     @map("school_name")
+  date            String     @db.VarChar(50)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("previous_schools")
 }
 
 model Payment {

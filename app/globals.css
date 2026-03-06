@@ -164,14 +164,56 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Prevent horizontal overflow from any element */
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Smooth scrolling for anchor navigation */
+    scroll-behavior: smooth;
+    /* Prevent text size inflation on orientation change (iOS) */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    /* Prevent horizontal scroll caused by overflow elements */
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.015em;
+  }
+
+  /* Prevent iOS Safari auto-zoom on input focus (font-size < 16px triggers it) */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+  /* On md+ screens keep the design's intended smaller size */
+  @media (min-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: 0.875rem; /* text-sm = 14px */
+    }
+  }
+
+  /* Buttons: remove 300ms tap delay on iOS */
+  button,
+  [role="button"],
+  a {
+    touch-action: manipulation;
+  }
+
+  /* Minimum tap target size for interactive elements */
+  button,
+  [role="button"] {
+    min-height: 36px;
   }
 
   ::selection {
@@ -188,13 +230,20 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--muted-foreground);
   }
+
+  /* Smooth focus rings */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
 }
 
 /* ── Utility animations ─────────────────────────────────────────────────── */
 @layer utilities {
-  .animate-fade-up     { animation: fade-up   0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .animate-fade-in     { animation: fade-in  0.4s  ease both; }
-  .animate-slide-right { animation: slide-right 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-fade-up     { animation: fade-up   0.5s  cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-fade-in     { animation: fade-in   0.35s ease both; }
+  .animate-slide-right { animation: slide-right 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
   .delay-75  { animation-delay: 0.075s; }
   .delay-150 { animation-delay: 0.15s; }
@@ -202,6 +251,7 @@
   .delay-300 { animation-delay: 0.3s; }
   .delay-375 { animation-delay: 0.375s; }
 
+  /* Subtle dot grid overlay for branded panels */
   .dot-grid {
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
     background-size: 28px 28px;
@@ -209,12 +259,45 @@
 
   .text-balance { text-wrap: balance; }
 
+  /* Card hover lift effect */
+  .card-hover {
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* Login page: optional subtle background image; fallback is --muted */
   .login-panel-bg {
     background-color: var(--muted);
     background-image: url(/login-bg.jpg);
     background-size: cover;
     background-position: center;
+  }
+
+  /* Sidebar active indicator line */
+  .nav-active-line {
+    position: relative;
+  }
+  .nav-active-line::before {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--primary);
+    border-radius: 0 2px 2px 0;
   }
 }
 

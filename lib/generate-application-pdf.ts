@@ -19,6 +19,10 @@ type Props = {
   amount?: number;
   paymentDate?: string | null;
   paymentStatus?: string | null;
+  paymentReference?: string | null;
+  parentName?: string | null;
+  parentEmail?: string | null;
+  parentPhone?: string | null;
 };
 
 export async function generateApplicationPdfBuffer(

@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Fraunces } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/session-provider";
+import { GlobalErrorProvider } from "@/components/global-error-provider";
 import { getSchoolConfig, getSchoolColorStyleBlock } from "@/lib/school-config";
 import "./globals.css";
 
@@ -18,6 +19,13 @@ const fraunces = Fraunces({
 });
 
 export const dynamic = "force-dynamic";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = getSchoolConfig();
@@ -40,8 +48,10 @@ export default function RootLayout({
       >
         <style dangerouslySetInnerHTML={{ __html: styleBlock }} />
         <SessionProvider>
-          {children}
-          <Toaster />
+          <GlobalErrorProvider>
+            {children}
+            <Toaster />
+          </GlobalErrorProvider>
         </SessionProvider>
       </body>
     </html>

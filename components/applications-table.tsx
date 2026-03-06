@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -10,47 +10,75 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { initializePayment } from "@/actions/payment";
-import { toast } from "sonner";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, ChevronRight, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 
-function formatNaira(amount: number): string {
-  return `₦${Number(amount).toLocaleString("en-NG")}`;
-}
+/* ── Status badge helpers ──────────────────────────────────────────────── */
 
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    SUBMITTED: "bg-amber-100 text-amber-800 border-amber-200",
-    PAID: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    COMPLETED: "bg-blue-100 text-blue-800 border-blue-200",
+type StatusConfig = {
+  label: string;
+  dot: string;
+  badge: string;
+};
+
+const APP_STATUS: Record<string, StatusConfig> = {
+  SUBMITTED: {
+    label: "Under Review",
+    dot: "bg-amber-500",
+    badge: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  PAID: {
+    label: "Paid",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  COMPLETED: {
+    label: "Completed",
+    dot: "bg-blue-500",
+    badge: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+};
+
+const ADMISSION_STATUS: Record<string, StatusConfig> = {
+  OFFERED: {
+    label: "Admitted",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  PENDING: {
+    label: "Pending",
+    dot: "bg-amber-500",
+    badge: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  REJECTED: {
+    label: "Rejected",
+    dot: "bg-red-500",
+    badge: "bg-red-50 text-red-700 border-red-200",
+  },
+};
+
+function StatusBadge({
+  status,
+  map,
+}: {
+  status: string;
+  map: Record<string, StatusConfig>;
+}) {
+  const cfg = map[status] ?? {
+    label: status,
+    dot: "bg-muted-foreground/40",
+    badge: "bg-muted text-muted-foreground border-border",
   };
-  const s = styles[status] ?? "bg-muted text-muted-foreground border-border";
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${s}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${cfg.badge}`}
     >
-      {status}
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg.dot}`} />
+      {cfg.label}
     </span>
   );
 }
 
-function AdmissionBadge({ status }: { status: string | null | undefined }) {
-  if (status == null || status === "") return <span className="text-muted-foreground">—</span>;
-  const styles: Record<string, string> = {
-    OFFERED: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    PENDING: "bg-amber-100 text-amber-800 border-amber-200",
-    REJECTED: "bg-red-100 text-red-800 border-red-200",
-  };
-  const s = styles[status] ?? "bg-muted text-muted-foreground border-border";
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${s}`}
-    >
-      {status}
-    </span>
-  );
-}
+/* ── Types ──────────────────────────────────────────────────────────────── */
 
 type App = {
   id: string;
@@ -62,179 +90,150 @@ type App = {
   admission?: { id: string; status: string } | null;
 };
 
+/* ── Component ──────────────────────────────────────────────────────────── */
+
 export function ApplicationsTable({
   applications,
 }: {
   applications: App[];
 }) {
   const router = useRouter();
-  const [payingId, setPayingId] = useState<string | null>(null);
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
-
-  async function handlePay(applicationId: string) {
-    setPayingId(applicationId);
-    try {
-      const result = await initializePayment(applicationId);
-      if (result.ok) {
-        window.open(result.authorizationUrl, "_blank", "noopener,noreferrer");
-        return;
-      }
-      toast.error(result.error);
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setPayingId(null);
-      router.refresh();
-    }
-  }
 
   if (applications.length === 0) {
     return (
-      <p className="text-muted-foreground py-8 text-center">
-        No applications yet. Start one to apply for a session.
-      </p>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+          <FileText className="size-5 text-muted-foreground" />
+        </span>
+        <p className="mt-3 text-sm font-medium text-foreground">
+          No applications yet
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Start an application to apply for the current enrollment session.
+        </p>
+      </div>
     );
-  }
-
-  function statusStyles(status: string) {
-    if (status === "COMPLETED") return "bg-emerald-100 text-emerald-800";
-    if (status === "PAID") return "bg-amber-100 text-amber-800";
-    if (status === "SUBMITTED") return "bg-teal-100 text-teal-800";
-    return "bg-muted text-muted-foreground";
   }
 
   return (
     <>
-      {/* Desktop: table — Name, Class, Status, Admission, Actions */}
-      <div className="hidden md:block overflow-x-auto">
+      {/* Desktop table */}
+      <div className="hidden overflow-hidden rounded-xl border border-border md:block">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Child name</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Admission</TableHead>
-              <TableHead className="w-[180px] text-right">Actions</TableHead>
+            <TableRow className="bg-muted/40 hover:bg-muted/40">
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Student
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Class
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Session
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Admission
+              </TableHead>
+              <TableHead className="w-8" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {applications.map((app) => {
-              const hasPaid =
-                app.status === "PAID" ||
-                app.status === "COMPLETED" ||
-                app.payments.some((p) => p.status === "COMPLETED");
-              return (
-                <TableRow key={app.id}>
-                  <TableCell>{app.wardName}</TableCell>
-                  <TableCell>{app.class}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={app.status} />
-                  </TableCell>
-                  <TableCell>
-                    <AdmissionBadge status={app.admission?.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-wrap justify-end gap-1">
-                      {app.status === "SUBMITTED" && !hasPaid && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handlePay(app.id)}
-                          disabled={payingId === app.id}
-                        >
-                          {payingId === app.id ? "…" : "Make payment"}
-                        </Button>
-                      )}
-                      {(app.status === "PAID" || app.status === "COMPLETED") && (
-                        <Button size="sm" variant="link" asChild className="p-0 h-auto">
-                          <a href={`/api/applications/${app.id}/form`} download>
-                            Download receipt
-                          </a>
-                        </Button>
-                      )}
-                      {app.admission && (
-                        <Button size="sm" variant="link" asChild className="p-0 h-auto">
-                          <a href={`/api/applications/${app.id}/admission-letter`} download>
-                            Download admission letter
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {applications.map((app) => (
+              <TableRow
+                key={app.id}
+                className="cursor-pointer transition-colors hover:bg-muted/30"
+                onClick={() => router.push(`/applicant/${app.id}`)}
+              >
+                <TableCell>
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                      {app.wardName
+                        .split(" ")
+                        .filter(Boolean)
+                        .map((p) => p[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {app.wardName}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {app.class}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {app.session.year}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={app.status} map={APP_STATUS} />
+                </TableCell>
+                <TableCell>
+                  {app.admission ? (
+                    <StatusBadge
+                      status={app.admission.status}
+                      map={ADMISSION_STATUS}
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <ChevronRight className="size-4 text-muted-foreground/50" />
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
 
-      {/* Mobile: multilevel cards — collapsed: name, status badge, admission badge; expanded: class, Make payment, receipts */}
-      <div className="space-y-3 md:hidden">
+      {/* Mobile cards */}
+      <div className="space-y-2 md:hidden">
         {applications.map((app) => {
-          const hasPaid =
-            app.status === "PAID" ||
-            app.status === "COMPLETED" ||
-            app.payments.some((p) => p.status === "COMPLETED");
-          const isExpanded = expandedCardId === app.id;
+          const initials = app.wardName
+            .split(" ")
+            .filter(Boolean)
+            .map((p) => p[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
           return (
-            <div
+            <Link
               key={app.id}
-              className="rounded-xl border border-border bg-card overflow-hidden"
+              href={`/applicant/${app.id}`}
+              className="flex min-h-[60px] items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors hover:bg-muted/30 active:bg-muted/50"
             >
-              <button
-                type="button"
-                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
-                onClick={() =>
-                  setExpandedCardId((id) => (id === app.id ? null : app.id))
-                }
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground truncate">
+              {/* Avatar + name */}
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                  {initials}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {app.wardName}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap gap-2">
-                    <StatusBadge status={app.status} />
-                    <AdmissionBadge status={app.admission?.status} />
-                  </div>
-                </div>
-                {isExpanded ? (
-                  <ChevronUp className="size-5 shrink-0 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
-                )}
-              </button>
-              {isExpanded && (
-                <div className="border-t border-border px-4 py-3 space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Class: <span className="font-medium text-foreground">{app.class}</span>
+                  <p className="text-xs text-muted-foreground">
+                    {app.class} · {app.session.year}
                   </p>
-                  {app.status === "SUBMITTED" && !hasPaid && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handlePay(app.id)}
-                      disabled={payingId === app.id}
-                    >
-                      {payingId === app.id ? "…" : "Make payment"}
-                    </Button>
-                  )}
-                  {(app.status === "PAID" || app.status === "COMPLETED") && (
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={`/api/applications/${app.id}/form`} download>
-                        Download receipt
-                      </a>
-                    </Button>
-                  )}
-                  {app.admission && (
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={`/api/applications/${app.id}/admission-letter`} download>
-                        Download admission letter
-                      </a>
-                    </Button>
-                  )}
                 </div>
-              )}
-            </div>
+              </div>
+
+              {/* Status + chevron */}
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <StatusBadge status={app.status} map={APP_STATUS} />
+                {app.admission && (
+                  <StatusBadge
+                    status={app.admission.status}
+                    map={ADMISSION_STATUS}
+                  />
+                )}
+              </div>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
+            </Link>
           );
         })}
       </div>

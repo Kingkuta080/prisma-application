@@ -2,16 +2,11 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAppBaseUrl } from "@/lib/school-config";
 import { revalidatePath } from "next/cache";
 
 const GATEWAY_BASE = process.env.GATEWAY_PUBLIC_URL;
-function getAppUrl(): string {
-  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
-  const vercel = process.env.VERCEL_URL;
-  if (vercel) return `https://${vercel}`;
-  return "http://localhost:3000";
-}
-const APP_URL = getAppUrl();
+const APP_URL = getAppBaseUrl() || "http://localhost:3000";
 const QUEUE_NAME = process.env.PAYMENT_QUEUE_NAME ?? "prisma_app_payments";
 
 type InitializeResult =

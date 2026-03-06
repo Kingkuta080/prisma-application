@@ -10,19 +10,29 @@ async function main() {
   // Reset: delete in dependency order (child tables first)
   await prisma.payment.deleteMany();
   await prisma.admission.deleteMany();
+  await prisma.previousSchool.deleteMany();
   await prisma.application.deleteMany();
   await prisma.applicationSession.deleteMany();
+  await prisma.oneTimeLoginToken.deleteMany();
 
   const currentYear = new Date().getFullYear();
   const defaultClasses = [
-    "Nursery",
-    "KG",
-    "Class 1",
-    "Class 2",
-    "Class 3",
-    "Class 4",
-    "Class 5",
-    "Class 6",
+    "Secondary Conventional / Islamiyya",
+    "JSS",
+    "SSS",
+    "A Levels",
+    "TOEFL",
+    "SAT",
+    "IGCSE",
+    "AMIB",
+    "WAEC",
+    "NECO",
+    "Adult Islamiyya",
+    "Pre-Basic",
+    "Basic",
+    "Muttawasita",
+    "Sanawiyya",
+    "Advanced Diploma",
   ];
 
   const sessions = [

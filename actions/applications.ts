@@ -4,18 +4,48 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+export type PreviousSchoolInput = { schoolName: string; date: string };
+
 export async function createApplication(
   sessionId: string,
-  wardName: string,
-  wardDob: string,
-  wardGender: string,
-  selectedClass: string
+  data: {
+    firstName: string;
+    lastName: string;
+    middleName?: string;
+    wardDob: string;
+    wardGender: string;
+    selectedClass: string;
+    stateOfOrigin?: string;
+    lga?: string;
+    nationality?: string;
+    religion?: string;
+    medicalInfo?: string;
+    photoUrl?: string;
+    previousSchools?: PreviousSchoolInput[];
+  }
 ) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
+  const {
+    firstName,
+    lastName,
+    middleName,
+    wardDob,
+    wardGender,
+    selectedClass,
+    stateOfOrigin,
+    lga,
+    nationality,
+    religion,
+    medicalInfo,
+    photoUrl,
+    previousSchools = [],
+  } = data;
+
   const classTrimmed = selectedClass.trim();
   if (!classTrimmed) return { error: "Class is required" };
+  if (!firstName?.trim() || !lastName?.trim()) return { error: "First name and last name are required" };
 
   const appSession = await prisma.applicationSession.findUnique({
     where: { id: sessionId },
@@ -27,17 +57,38 @@ export async function createApplication(
     return { error: "Application session is not open for submissions" };
   }
 
+  const wardName = [firstName.trim(), lastName.trim(), middleName?.trim()].filter(Boolean).join(" ");
+
   const application = await prisma.application.create({
     data: {
       userId: session.user.id,
       sessionId,
-      wardName: wardName.trim(),
+      wardName,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      middleName: middleName?.trim() || null,
       wardDob: new Date(wardDob),
       wardGender: wardGender.trim(),
       class: classTrimmed,
+      stateOfOrigin: stateOfOrigin?.trim() || null,
+      lga: lga?.trim() || null,
+      nationality: nationality?.trim() || null,
+      religion: religion?.trim() || null,
+      medicalInfo: medicalInfo?.trim() || null,
+      photoUrl: photoUrl?.trim() || null,
       status: "SUBMITTED",
-    } as Parameters<typeof prisma.application.create>[0]["data"],
+    },
   });
+
+  if (previousSchools.length > 0) {
+    await prisma.previousSchool.createMany({
+      data: previousSchools.map((ps) => ({
+        applicationId: application.id,
+        schoolName: ps.schoolName.trim(),
+        date: ps.date.trim(),
+      })),
+    });
+  }
 
   await prisma.payment.create({
     data: {

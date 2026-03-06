@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileDown } from "lucide-react";
+import { FileDown, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 
@@ -16,15 +16,17 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
 
   if (!reference) {
     return (
-      <div className="mx-auto max-w-md space-y-6 py-12 text-center">
-        <h1 className="text-xl font-semibold">Payment</h1>
-        <p className="text-muted-foreground">
-          No payment reference was provided. If you just completed a payment,
-          please return to your dashboard.
-        </p>
-        <Button asChild>
-          <Link href="/">Back to dashboard</Link>
-        </Button>
+      <div className="mx-auto max-w-md">
+        <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-sm">
+          <h1 className="font-heading text-xl font-semibold">No Reference</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            No payment reference was provided. If you just completed a payment,
+            please return to your dashboard.
+          </p>
+          <Button asChild className="mt-6">
+            <Link href="/">Back to Dashboard</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -45,17 +47,15 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
         verifiedStatus = "failed";
       }
     } catch {
-      // Gateway unreachable (e.g. from Vercel); fall back to redirect query params
+      // Gateway unreachable — fall back to redirect query params
     }
   }
+
   if (verifiedStatus === null) {
     const successValues = ["success", "completed", "paid"];
     const failValues = ["failed", "error", "cancel", "cancelled"];
-    if (successValues.includes(queryStatus)) {
-      verifiedStatus = "success";
-    } else if (failValues.includes(queryStatus)) {
-      verifiedStatus = "failed";
-    }
+    if (successValues.includes(queryStatus)) verifiedStatus = "success";
+    else if (failValues.includes(queryStatus)) verifiedStatus = "failed";
   }
 
   const payment = await prisma.payment.findFirst({
@@ -87,34 +87,79 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
 
   const isSuccess = verifiedStatus === "success";
   const amount = payment ? Number(payment.amount) : 0;
-  const amountFormatted = amount
-    ? `₦${amount.toLocaleString("en-NG")}`
-    : "";
+  const amountFormatted = amount ? `₦${amount.toLocaleString("en-NG")}` : "";
 
   return (
-    <div className="mx-auto max-w-md space-y-6 py-12 text-center">
-      <h1 className="text-xl font-semibold">
-        {isSuccess ? "Payment successful" : "Payment failed"}
-      </h1>
-      <p className="text-muted-foreground">
-        {isSuccess
-          ? amountFormatted
-            ? `Your payment of ${amountFormatted} was completed successfully.`
-            : "Your payment was completed successfully."
-          : "The payment could not be completed or was not successful. You can try again from your dashboard."}
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        {isSuccess && payment?.applicationId && (
-          <Button asChild variant="default" className="gap-2">
-            <a href={`/api/applications/${payment.applicationId}/form`} download>
-              <FileDown className="size-4" />
-              Download receipt
-            </a>
-          </Button>
-        )}
-        <Button asChild variant={isSuccess && payment?.applicationId ? "outline" : "default"}>
-          <Link href="/">Back to dashboard</Link>
-        </Button>
+    <div className="mx-auto max-w-md">
+      <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+        {/* Status banner */}
+        <div
+          className={`px-6 py-8 text-center ${
+            isSuccess
+              ? "bg-emerald-50"
+              : "bg-red-50"
+          }`}
+        >
+          {isSuccess ? (
+            <CheckCircle2 className="mx-auto size-14 text-emerald-500" />
+          ) : (
+            <XCircle className="mx-auto size-14 text-red-500" />
+          )}
+          <h1 className="mt-4 font-heading text-2xl font-semibold text-foreground">
+            {isSuccess ? "Payment Successful" : "Payment Failed"}
+          </h1>
+          {isSuccess && amountFormatted && (
+            <p className="mt-2 text-3xl font-bold text-emerald-600">
+              {amountFormatted}
+            </p>
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="px-6 py-6">
+          <p className="text-center text-sm text-muted-foreground">
+            {isSuccess
+              ? amountFormatted
+                ? `Your payment of ${amountFormatted} has been received and confirmed. You can now download your application receipt.`
+                : "Your payment was completed successfully."
+              : "The payment could not be completed or was not successful. You can try again from your dashboard."}
+          </p>
+
+          {reference && (
+            <div className="mt-4 rounded-lg border border-border bg-muted/40 px-4 py-3 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Reference
+              </p>
+              <p className="mt-0.5 font-mono text-sm text-foreground">
+                {reference}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {isSuccess && payment?.applicationId && (
+              <Button asChild className="gap-2">
+                <a
+                  href={`/api/applications/${payment.applicationId}/form`}
+                  download
+                >
+                  <FileDown className="size-4" />
+                  Download Receipt
+                </a>
+              </Button>
+            )}
+            <Button
+              asChild
+              variant={isSuccess && payment?.applicationId ? "outline" : "default"}
+              className="gap-2"
+            >
+              <Link href="/">
+                <ArrowLeft className="size-4" />
+                Back to Dashboard
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
