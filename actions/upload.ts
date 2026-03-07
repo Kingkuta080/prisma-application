@@ -1,45 +1,73 @@
 "use server";
 
-import { v2 as cloudinary } from "cloudinary";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { auth } from "@/auth";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { randomUUID } from "crypto";
 
 type UploadResult = { url: string } | { error: string };
 
+function getS3Client() {
+  return new S3Client({
+    region: process.env.AWS_REGION!,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  });
+}
+
 /**
- * Uploads a base64-encoded image (data URL) to Cloudinary.
+ * Uploads a base64-encoded image (data URL) to AWS S3.
  * Must be called from an authenticated session.
- * Returns the secure Cloudinary URL on success.
+ * Returns the public S3 object URL on success.
  */
 export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
-  if (!process.env.CLOUDINARY_CLOUD_NAME?.trim()) {
+  const bucket = process.env.AWS_S3_BUCKET?.trim();
+  const region = process.env.AWS_REGION?.trim();
+
+  if (!bucket || !region) {
     return { error: "Image upload is not configured" };
   }
 
-  try {
-    const result = await cloudinary.uploader.upload(dataUrl, {
-      folder: "applicant-photos",
-      resource_type: "image",
-      // Auto-select best format (webp where supported)
-      fetch_format: "auto",
-      quality: "auto:good",
-      // Crop tightly around face for passport-style photos
-      transformation: [
-        { width: 500, height: 500, crop: "fill", gravity: "face" },
-      ],
-    });
+  // Parse the data URL — e.g. "data:image/jpeg;base64,/9j/4AAQ..."
+  const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+  if (!match) return { error: "Invalid image data" };
 
-    return { url: result.secure_url };
+  const mimeType = match[1];           // e.g. "image/jpeg"
+  const base64Data = match[2];
+  const buffer = Buffer.from(base64Data, "base64");
+
+  // Derive a file extension from the MIME type
+  const ext = mimeType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+
+  // Unique key per upload: applicant-photos/<userId>/<uuid>.<ext>
+  const key = `applicant-photos/${session.user.id}/${randomUUID()}.${ext}`;
+
+  try {
+    const client = getS3Client();
+
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: mimeType,
+        // Make the object publicly readable (suitable for a public bucket)
+        ACL: "public-read",
+        Metadata: {
+          uploadedBy: session.user.id,
+        },
+      })
+    );
+
+    // Standard S3 public URL
+    const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    return { url };
   } catch (err) {
-    console.error("Cloudinary upload failed:", err);
+    console.error("S3 upload failed:", err);
     const message = err instanceof Error ? err.message : "Upload failed";
     return { error: message };
   }
