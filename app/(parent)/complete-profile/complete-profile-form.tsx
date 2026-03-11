@@ -39,12 +39,8 @@ export function CompleteProfileForm({
     setLoading(true);
     try {
       const form = e.currentTarget;
-      const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
-      const phone = (form.elements.namedItem("phone") as HTMLInputElement).value.trim();
-      if (!name || !phone) {
-        setError("Full name and phone number are required.");
-        return;
-      }
+      const name = (form.elements.namedItem("name") as HTMLInputElement)?.value?.trim() ?? "";
+      const phone = (form.elements.namedItem("phone") as HTMLInputElement)?.value?.trim() ?? "";
       const result = await updateProfile({
         name,
         phone,
@@ -75,40 +71,8 @@ export function CompleteProfileForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {/* ── Your details (required for account) ────────────────────────────── */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-foreground">
-          Your details
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="name">Your full name</Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              required
-              defaultValue={defaultName}
-              placeholder="Full name"
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="phone">Your phone number</Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              required
-              defaultValue={defaultPhone}
-              placeholder="+234 800 000 0000"
-              className="h-10"
-            />
-          </div>
-        </div>
-      </div>
+      <input type="hidden" name="name" defaultValue={defaultName} />
+      <input type="hidden" name="phone" defaultValue={defaultPhone} />
 
       {/* ── Guardian Information ──────────────────────────────────────────── */}
       <div className="space-y-4">
