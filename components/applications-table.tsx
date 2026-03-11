@@ -22,7 +22,7 @@ type StatusConfig = {
 
 const APP_STATUS: Record<string, StatusConfig> = {
   SUBMITTED: {
-    label: "Under Review",
+    label: "Not paid",
     dot: "bg-amber-500",
     badge: "bg-amber-50 text-amber-700 border-amber-200",
   },
@@ -181,9 +181,6 @@ export function ApplicationsTable({
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>
                   )}
-                </TableCell>
-                <TableCell>
-                  <ChevronRight className="size-4 text-muted-foreground/50" />
                 </TableCell>
               </TableRow>
             ))}

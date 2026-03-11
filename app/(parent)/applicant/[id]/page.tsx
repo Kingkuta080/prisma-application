@@ -23,7 +23,7 @@ import {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; dot: string; cls: string }> = {
     SUBMITTED: {
-      label: "Under Review",
+      label: "Not paid",
       dot: "bg-amber-500",
       cls: "bg-amber-50 text-amber-700 border-amber-200",
     },
@@ -172,15 +172,17 @@ export default async function ApplicantDetailPage({
         </div>
       </div>
 
-      {/* ── Profile header card ───────────────────────────────────────────── */}
+      {/* ── Profile header card (minimal: soft tint, no solid gradient) ─────── */}
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
-        <div
-          className="h-16 sm:h-20"
-          style={{
-            background:
-              "linear-gradient(135deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 65%, var(--brand-accent)) 100%)",
-          }}
-        />
+        <div className="relative h-16 sm:h-20 bg-primary/[0.08]">
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+              backgroundSize: "24px 24px",
+            }}
+          />
+        </div>
         <div className="px-4 pb-5 sm:px-6 sm:pb-6">
           {/* Photo + badges row */}
           <div className="-mt-9 flex flex-wrap items-end justify-between gap-2 sm:-mt-10">
@@ -188,7 +190,7 @@ export default async function ApplicantDetailPage({
               <img
                 src={application.photoUrl}
                 alt={wardName}
-                className="h-[72px] w-[72px] rounded-xl border-4 border-white object-cover shadow-md sm:h-20 sm:w-20"
+                className="h-[72px] w-[72px] rounded-xl border-4 border-white bg-white object-cover shadow-md sm:h-20 sm:w-20"
               />
             ) : (
               <span className="flex h-[72px] w-[72px] items-center justify-center rounded-xl border-4 border-white bg-primary/10 text-xl font-bold text-primary shadow-md sm:h-20 sm:w-20">

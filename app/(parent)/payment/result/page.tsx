@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { FileDown, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
+import { DownloadReceiptButton } from "@/components/download-receipt-button";
 
 const GATEWAY_BASE = process.env.GATEWAY_PUBLIC_URL;
 
@@ -92,24 +93,31 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto max-w-md">
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
-        {/* Status banner */}
+        {/* Status banner — minimal: soft tint, dark text */}
         <div
-          className={`px-6 py-8 text-center ${
+          className={`relative px-6 py-8 text-center ${
             isSuccess
-              ? "bg-emerald-50"
-              : "bg-red-50"
+              ? "bg-emerald-500/[0.08]"
+              : "bg-red-500/[0.08]"
           }`}
         >
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+              backgroundSize: "20px 20px",
+            }}
+          />
           {isSuccess ? (
-            <CheckCircle2 className="mx-auto size-14 text-emerald-500" />
+            <CheckCircle2 className="relative mx-auto size-14 text-emerald-600" />
           ) : (
-            <XCircle className="mx-auto size-14 text-red-500" />
+            <XCircle className="relative mx-auto size-14 text-red-600" />
           )}
-          <h1 className="mt-4 font-heading text-2xl font-semibold text-foreground">
+          <h1 className="relative mt-4 font-heading text-2xl font-semibold text-foreground">
             {isSuccess ? "Payment Successful" : "Payment Failed"}
           </h1>
           {isSuccess && amountFormatted && (
-            <p className="mt-2 text-3xl font-bold text-emerald-600">
+            <p className="relative mt-2 text-3xl font-bold text-foreground tabular-nums">
               {amountFormatted}
             </p>
           )}
@@ -138,15 +146,10 @@ export default async function PaymentResultPage({ searchParams }: PageProps) {
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             {isSuccess && payment?.applicationId && (
-              <Button asChild className="gap-2">
-                <a
-                  href={`/api/applications/${payment.applicationId}/form`}
-                  download
-                >
-                  <FileDown className="size-4" />
-                  Download Receipt
-                </a>
-              </Button>
+              <DownloadReceiptButton
+                applicationId={payment.applicationId}
+                className="gap-2"
+              />
             )}
             <Button
               asChild

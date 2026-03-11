@@ -1,34 +1,58 @@
 "use server";
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
+import https from "node:https";
 import { auth } from "@/auth";
 import { randomUUID } from "crypto";
 
 type UploadResult = { url: string } | { error: string };
 
+/**
+ * S3 client supports custom S3-compatible endpoints (e.g. DigitalOcean Spaces,
+ * MinIO) via S3_ENDPOINT and S3_PUBLIC_URL. No AWS-specific URLs are hardcoded.
+ * Set S3_INSECURE_SKIP_TLS_VERIFY=1 to allow self-signed certificates (e.g. local MinIO).
+ */
 function getS3Client() {
+  const endpoint = process.env.S3_ENDPOINT?.trim();
+  const skipTlsVerify =
+    process.env.S3_INSECURE_SKIP_TLS_VERIFY === "1" ||
+    process.env.S3_INSECURE_SKIP_TLS_VERIFY === "true";
+
+  const requestHandler = skipTlsVerify
+    ? new NodeHttpHandler({
+        httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+      })
+    : undefined;
+
   return new S3Client({
-    region: process.env.AWS_REGION!,
+    ...(endpoint && {
+      endpoint,
+      forcePathStyle:
+        endpoint.includes("localhost") || endpoint.includes("127.0.0.1"),
+    }),
+    region: process.env.S3_REGION || "us-east-1",
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
     },
+    ...(requestHandler && { requestHandler }),
   });
 }
 
 /**
- * Uploads a base64-encoded image (data URL) to AWS S3.
+ * Uploads a base64-encoded image (data URL) to S3 (or S3-compatible storage).
  * Must be called from an authenticated session.
- * Returns the public S3 object URL on success.
+ * Returns the public object URL on success.
  */
 export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
-  const bucket = process.env.AWS_S3_BUCKET?.trim();
-  const region = process.env.AWS_REGION?.trim();
+  const bucket = process.env.S3_BUCKET?.trim();
+  const publicBaseUrl = process.env.S3_PUBLIC_URL?.trim();
 
-  if (!bucket || !region) {
+  if (!bucket || !publicBaseUrl) {
     return { error: "Image upload is not configured" };
   }
 
@@ -36,14 +60,11 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
   const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
   if (!match) return { error: "Invalid image data" };
 
-  const mimeType = match[1];           // e.g. "image/jpeg"
+  const mimeType = match[1];
   const base64Data = match[2];
   const buffer = Buffer.from(base64Data, "base64");
 
-  // Derive a file extension from the MIME type
   const ext = mimeType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
-
-  // Unique key per upload: applicant-photos/<userId>/<uuid>.<ext>
   const key = `applicant-photos/${session.user.id}/${randomUUID()}.${ext}`;
 
   try {
@@ -55,7 +76,6 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
         Key: key,
         Body: buffer,
         ContentType: mimeType,
-        // Make the object publicly readable (suitable for a public bucket)
         ACL: "public-read",
         Metadata: {
           uploadedBy: session.user.id,
@@ -63,8 +83,8 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
       })
     );
 
-    // Standard S3 public URL
-    const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    const base = publicBaseUrl.replace(/\/$/, "");
+    const url = `${base}/${key}`;
     return { url };
   } catch (err) {
     console.error("S3 upload failed:", err);

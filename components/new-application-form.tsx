@@ -36,6 +36,58 @@ import {
   Info,
   ImagePlus,
 } from "lucide-react";
+import { NIGERIAN_STATES, LGAS_BY_STATE } from "@/lib/nigeria-data";
+
+const NATIONALITIES = [
+  "Nigerian",
+  "Ghanaian",
+  "Cameroonian",
+  "Beninese",
+  "Togolese",
+  "Nigerien",
+  "Chadian",
+  "American",
+  "British",
+  "Canadian",
+  "Indian",
+  "Chinese",
+  "Pakistani",
+  "Bangladeshi",
+  "Egyptian",
+  "South African",
+  "Kenyan",
+  "Other",
+];
+
+const RELIGIONS = ["Islam", "Christianity", "Traditional / Indigenous", "Other"];
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const currentYear = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: currentYear - 1990 + 1 }, (_, i) => currentYear - i);
+
+function formatSchoolPeriod(fromMonth: string, fromYear: string, toMonth: string, toYear: string, toPresent: boolean): string {
+  if (!fromMonth || !fromYear) return "";
+  if (toPresent) return `${fromMonth} ${fromYear} – Present`;
+  if (toMonth && toYear) return `${fromMonth} ${fromYear} – ${toMonth} ${toYear}`;
+  return `${fromMonth} ${fromYear}`;
+}
+
+function parseSchoolPeriod(date: string): { fromMonth: string; fromYear: string; toMonth: string; toYear: string; toPresent: boolean } {
+  const presentMatch = date.match(/^(.+?)\s+(\d{4})\s*–\s*Present$/i);
+  if (presentMatch) {
+    return { fromMonth: presentMatch[1].trim(), fromYear: presentMatch[2], toMonth: "", toYear: "", toPresent: true };
+  }
+  const rangeMatch = date.match(/^(.+?)\s+(\d{4})\s*–\s*(.+?)\s+(\d{4})$/);
+  if (rangeMatch) {
+    return { fromMonth: rangeMatch[1].trim(), fromYear: rangeMatch[2], toMonth: rangeMatch[3].trim(), toYear: rangeMatch[4], toPresent: false };
+  }
+  const singleMatch = date.match(/^(.+?)\s+(\d{4})$/);
+  if (singleMatch) {
+    return { fromMonth: singleMatch[1].trim(), fromYear: singleMatch[2], toMonth: "", toYear: "", toPresent: false };
+  }
+  return { fromMonth: "", fromYear: "", toMonth: "", toYear: "", toPresent: false };
+}
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 
@@ -98,16 +150,24 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  // true while the photo is being uploaded to Cloudinary
   const [photoUploading, setPhotoUploading] = useState(false);
   const [cameraPreviewOpen, setCameraPreviewOpen] = useState(false);
+  const [capturedDataUrl, setCapturedDataUrl] = useState<string | null>(null);
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [previousSchools, setPreviousSchools] = useState<PreviousSchoolRow[]>([]);
   const [schoolModalOpen, setSchoolModalOpen] = useState(false);
   const [editingSchoolId, setEditingSchoolId] = useState<string | null>(null);
   const [schoolNameInput, setSchoolNameInput] = useState("");
-  const [schoolDateInput, setSchoolDateInput] = useState("");
+  const [schoolFromMonth, setSchoolFromMonth] = useState("");
+  const [schoolFromYear, setSchoolFromYear] = useState("");
+  const [schoolToMonth, setSchoolToMonth] = useState("");
+  const [schoolToYear, setSchoolToYear] = useState("");
+  const [schoolToPresent, setSchoolToPresent] = useState(false);
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedLga, setSelectedLga] = useState("");
 
   const activeSessionId = sessions[0]?.id ?? "";
+  const lgaOptions = selectedState ? (LGAS_BY_STATE[selectedState] ?? []) : [];
   const selectedSession = useMemo(
     () => sessions.find((s) => s.id === activeSessionId),
     [sessions, activeSessionId]
@@ -118,7 +178,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
 
   function addOrUpdateSchool() {
     const name = schoolNameInput.trim();
-    const date = schoolDateInput.trim();
+    const date = formatSchoolPeriod(schoolFromMonth, schoolFromYear, schoolToMonth, schoolToYear, schoolToPresent);
     if (!name || !date) return;
     if (editingSchoolId) {
       setPreviousSchools((prev) =>
@@ -134,14 +194,23 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
       ]);
     }
     setSchoolNameInput("");
-    setSchoolDateInput("");
+    setSchoolFromMonth("");
+    setSchoolFromYear("");
+    setSchoolToMonth("");
+    setSchoolToYear("");
+    setSchoolToPresent(false);
     setSchoolModalOpen(false);
   }
 
   function openEditSchool(row: PreviousSchoolRow) {
     setEditingSchoolId(row.id);
     setSchoolNameInput(row.schoolName);
-    setSchoolDateInput(row.date);
+    const parsed = parseSchoolPeriod(row.date);
+    setSchoolFromMonth(parsed.fromMonth);
+    setSchoolFromYear(parsed.fromYear);
+    setSchoolToMonth(parsed.toMonth);
+    setSchoolToYear(parsed.toYear);
+    setSchoolToPresent(parsed.toPresent);
     setSchoolModalOpen(true);
   }
 
@@ -151,31 +220,44 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
       setEditingSchoolId(null);
       setSchoolModalOpen(false);
       setSchoolNameInput("");
-      setSchoolDateInput("");
+      setSchoolFromMonth("");
+      setSchoolFromYear("");
+      setSchoolToMonth("");
+      setSchoolToYear("");
+      setSchoolToPresent(false);
     }
   }
+
+  const schoolDateValid =
+    !!schoolNameInput.trim() &&
+    !!schoolFromMonth &&
+    !!schoolFromYear &&
+    (schoolToPresent || (!!schoolToMonth && !!schoolToYear));
 
   useEffect(() => {
     if (!editingSchoolId && schoolModalOpen) {
       setSchoolNameInput("");
-      setSchoolDateInput("");
+      setSchoolFromMonth("");
+      setSchoolFromYear("");
+      setSchoolToMonth("");
+      setSchoolToYear("");
+      setSchoolToPresent(false);
     }
   }, [schoolModalOpen, editingSchoolId]);
 
   /* ── Cloudinary upload helper ────────────────────────────────────────── */
 
   async function handlePhotoSelected(dataUrl: string) {
-    // Show preview immediately (base64), then swap for Cloudinary URL
+    // Show preview immediately (base64), then swap for cloud URL when available
     setPhotoUrl(dataUrl);
     setPhotoUploading(true);
     try {
       const result = await uploadPhoto(dataUrl);
-      if ("error" in result) {
-        toast.error(`Photo upload failed: ${result.error}`);
-        // Keep local preview so user isn't left with nothing
-      } else {
+      if (!("error" in result)) {
         setPhotoUrl(result.url);
       }
+      // If there is an error, keep the local preview and log silently.
+      // We avoid surfacing low-level storage errors to parents.
     } finally {
       setPhotoUploading(false);
     }
@@ -209,17 +291,17 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
       )?.value?.trim() ?? "";
     const stateOfOrigin =
       (
-        form.elements.namedItem("stateOfOrigin") as HTMLInputElement
+        form.elements.namedItem("stateOfOrigin") as HTMLSelectElement
       )?.value?.trim() ?? "";
     const lga =
-      (form.elements.namedItem("lga") as HTMLInputElement)?.value?.trim() ?? "";
+      (form.elements.namedItem("lga") as HTMLSelectElement)?.value?.trim() ?? "";
     const nationality =
       (
-        form.elements.namedItem("nationality") as HTMLInputElement
+        form.elements.namedItem("nationality") as HTMLSelectElement
       )?.value?.trim() ?? "";
     const religion =
       (
-        form.elements.namedItem("religion") as HTMLInputElement
+        form.elements.namedItem("religion") as HTMLSelectElement
       )?.value?.trim() ?? "";
     const medicalInfo =
       (
@@ -310,7 +392,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
     }
   }, []);
 
-  async function confirmCameraCapture() {
+  function confirmCameraCapture() {
     const video = cameraVideoRef.current;
     if (!video || !video.videoWidth) {
       toast.error("Wait for the camera to load fully");
@@ -325,8 +407,21 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     stopCameraStream();
     setCameraPreviewOpen(false);
-    // Upload to Cloudinary (shows preview immediately, replaces with URL)
-    await handlePhotoSelected(dataUrl);
+    setCapturedDataUrl(dataUrl);
+    setShowRetakeModal(true);
+  }
+
+  function handleRetake() {
+    setCapturedDataUrl(null);
+    setShowRetakeModal(false);
+    openCameraPreview();
+  }
+
+  async function handleUsePhoto() {
+    if (!capturedDataUrl) return;
+    await handlePhotoSelected(capturedDataUrl);
+    setCapturedDataUrl(null);
+    setShowRetakeModal(false);
   }
 
   function closeCameraPreview() {
@@ -383,14 +478,58 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
         </DialogContent>
       </Dialog>
 
+      {/* ── Retake / use photo modal ────────────────────────────────────── */}
+      <Dialog
+        open={showRetakeModal && !!capturedDataUrl}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowRetakeModal(false);
+            setCapturedDataUrl(null);
+          }
+        }}
+      >
+        <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-4 p-4 sm:p-6">
+          <DialogTitle>Review photo</DialogTitle>
+          <DialogDescription>
+            Keep this photo or retake it.
+          </DialogDescription>
+          <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl border border-border bg-muted">
+            {capturedDataUrl && (
+              <img
+                src={capturedDataUrl}
+                alt="Captured applicant photo"
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleRetake}
+              className="w-full sm:w-auto"
+            >
+              Retake
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUsePhoto}
+              className="w-full gap-2 sm:w-auto"
+            >
+              Use This Photo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* ── Previous school dialog ──────────────────────────────────────── */}
       <Dialog open={schoolModalOpen} onOpenChange={setSchoolModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogTitle>
             {editingSchoolId ? "Edit school" : "Add previous school"}
           </DialogTitle>
           <DialogDescription>
-            Enter the school name and the period attended (e.g. 2018 – 2021).
+            Enter the school name and the period attended (month and year).
           </DialogDescription>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -403,27 +542,91 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                 className="h-10"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="modalSchoolDate">Period attended</Label>
-              <Input
-                id="modalSchoolDate"
-                value={schoolDateInput}
-                onChange={(e) => setSchoolDateInput(e.target.value)}
-                placeholder="e.g. 2018 – 2021"
-                className="h-10"
-              />
+            <div className="space-y-3">
+              <Label>Period attended</Label>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground">From (month)</span>
+                  <select
+                    value={schoolFromMonth}
+                    onChange={(e) => setSchoolFromMonth(e.target.value)}
+                    className={selectCls}
+                    aria-label="From month"
+                  >
+                    <option value="">Month</option>
+                    {MONTHS.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground">From (year)</span>
+                  <select
+                    value={schoolFromYear}
+                    onChange={(e) => setSchoolFromYear(e.target.value)}
+                    className={selectCls}
+                    aria-label="From year"
+                  >
+                    <option value="">Year</option>
+                    {YEAR_OPTIONS.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground">To (month)</span>
+                  <select
+                    value={schoolToMonth}
+                    onChange={(e) => setSchoolToMonth(e.target.value)}
+                    className={selectCls}
+                    aria-label="To month"
+                    disabled={schoolToPresent}
+                  >
+                    <option value="">Month</option>
+                    {MONTHS.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-xs text-muted-foreground">To (year)</span>
+                  <select
+                    value={schoolToYear}
+                    onChange={(e) => setSchoolToYear(e.target.value)}
+                    className={selectCls}
+                    aria-label="To year"
+                    disabled={schoolToPresent}
+                  >
+                    <option value="">Year</option>
+                    {YEAR_OPTIONS.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={schoolToPresent}
+                  onChange={(e) => setSchoolToPresent(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                />
+                <span>Still attending (Present)</span>
+              </label>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
             <Button
               variant="outline"
               onClick={() => setSchoolModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               onClick={addOrUpdateSchool}
-              disabled={!schoolNameInput.trim() || !schoolDateInput.trim()}
+              disabled={!schoolDateValid}
+              className="w-full sm:w-auto"
             >
               {editingSchoolId ? "Save changes" : "Add school"}
             </Button>
@@ -495,13 +698,13 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
 
         {/* Session info banner */}
         {selectedSession && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="mb-6 flex flex-col gap-1 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
             <GraduationCap className="size-4 shrink-0 text-primary" />
             <div className="flex-1 text-sm">
               <span className="font-semibold text-foreground">
                 {selectedSession.year} Enrollment Session
               </span>
-              <span className="ml-2 text-muted-foreground">
+              <span className="ml-0 block text-muted-foreground sm:ml-2 sm:inline">
                 — Application fee:{" "}
                 <span className="font-semibold text-foreground">
                   ₦{selectedSession.amount.toLocaleString("en-NG")}
@@ -559,25 +762,6 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                       </button>
                     </div>
                     )}
-                  </div>
-                  {/* Mobile: always-visible action buttons below photo */}
-                  <div className="flex gap-2 md:hidden">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-sm text-muted-foreground hover:bg-muted"
-                    >
-                      <Upload className="size-3.5" />
-                      Replace
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPhotoUrl(null)}
-                      className="flex h-9 items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 text-sm text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="size-3.5" />
-                      Remove
-                    </button>
                   </div>
                 </div>
               ) : (
@@ -682,11 +866,11 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             </FormSection>
           )}
 
-          {/* ── Section 3: Candidate name ────────────────────────────────── */}
+          {/* ── Section 3: Applicant name ────────────────────────────────── */}
           <FormSection
             icon={User}
-            title="Candidate's Full Name"
-            description="Enter the applicant's legal name as it appears on official documents."
+            title="Applicant's Full Name"
+            description="Enter the applicant's legal name."
           >
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
@@ -782,45 +966,69 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="stateOfOrigin">State of Origin</Label>
-                  <Input
+                  <select
                     id="stateOfOrigin"
                     name="stateOfOrigin"
-                    type="text"
-                    placeholder="e.g. Lagos"
-                    className="h-10"
-                  />
+                    value={selectedState}
+                    onChange={(e) => {
+                      setSelectedState(e.target.value);
+                      setSelectedLga("");
+                    }}
+                    className={selectCls}
+                    aria-label="State of origin"
+                  >
+                    <option value="">Select state…</option>
+                    {NIGERIAN_STATES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="lga">Local Government Area</Label>
-                  <Input
+                  <select
                     id="lga"
                     name="lga"
-                    type="text"
-                    placeholder="e.g. Ikeja"
-                    className="h-10"
-                  />
+                    value={selectedLga}
+                    onChange={(e) => setSelectedLga(e.target.value)}
+                    className={selectCls}
+                    aria-label="Local government area"
+                    disabled={!selectedState}
+                  >
+                    <option value="">Select LGA…</option>
+                    {lgaOptions.map((l) => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="nationality">Nationality</Label>
-                  <Input
+                  <select
                     id="nationality"
                     name="nationality"
-                    type="text"
-                    placeholder="e.g. Nigerian"
-                    className="h-10"
-                  />
+                    className={selectCls}
+                    aria-label="Nationality"
+                  >
+                    <option value="">Select nationality…</option>
+                    {NATIONALITIES.map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="religion">Religion</Label>
-                  <Input
+                  <select
                     id="religion"
                     name="religion"
-                    type="text"
-                    placeholder="e.g. Christianity"
-                    className="h-10"
-                  />
+                    className={selectCls}
+                    aria-label="Religion"
+                  >
+                    <option value="">Select religion…</option>
+                    {RELIGIONS.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -933,14 +1141,16 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
 
           {/* ── Fee notice ──────────────────────────────────────────────── */}
           {selectedSession && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/30 px-4 py-3 text-[13px] text-muted-foreground">
+            <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-start">
               <Info className="mt-0.5 size-4 shrink-0" />
-              After submitting, you&apos;ll be redirected to pay the application
-              fee of{" "}
-              <span className="font-semibold text-foreground">
-                ₦{selectedSession.amount.toLocaleString("en-NG")}
-              </span>{" "}
-              to confirm your application.
+              <span>
+                After submitting, you&apos;ll be redirected to pay the application
+                fee of{" "}
+                <span className="font-semibold text-foreground">
+                  ₦{selectedSession.amount.toLocaleString("en-NG")}
+                </span>{" "}
+                to confirm your application.
+              </span>
             </div>
           )}
 

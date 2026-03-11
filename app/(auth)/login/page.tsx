@@ -50,17 +50,15 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* ── Left panel ─────────────────────────────────────────────────── */}
-      <div className="relative hidden w-[46%] shrink-0 flex-col overflow-hidden lg:flex"
-        style={{
-          background: "linear-gradient(160deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 60%, var(--brand-accent)) 100%)",
-        }}
-      >
-        {/* Subtle pattern overlay */}
+      {/* ── Left panel (light minimal) ──────────────────────────────────── */}
+      <div className="relative hidden w-[46%] shrink-0 flex-col overflow-hidden border-r border-border bg-white lg:flex">
+        {/* Subtle brand tint */}
+        <div className="absolute inset-0 bg-primary/[0.03]" aria-hidden />
+        {/* Subtle dot grid overlay */}
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+            backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
             backgroundSize: "28px 28px",
           }}
         />
@@ -68,32 +66,32 @@ export default async function LoginPage({
         <div className="relative flex flex-1 flex-col p-10">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white/20 ring-1 ring-white/30">
+            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-1 ring-primary/20">
               <SchoolLogo
                 schoolLogo={config.schoolLogo}
                 wrapperClassName="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl"
-                fallbackIconClassName="size-5 text-white"
+                fallbackIconClassName="size-5 text-primary"
                 size={40}
               />
             </span>
             <div>
-              <p className="text-[14px] font-semibold text-white">
+              <p className="text-[14px] font-semibold text-foreground">
                 {config.schoolName}
               </p>
-              <p className="text-[10px] font-medium text-white/60">Parent Portal</p>
+              <p className="text-[10px] font-medium text-muted-foreground">Parent Portal</p>
             </div>
           </div>
 
           {/* Main copy */}
           <div className="mt-auto space-y-8">
             <div>
-              <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-white/80">
+              <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-primary">
                 Admission Management
               </span>
-              <h1 className="mt-4 font-heading text-4xl font-semibold leading-tight text-white">
+              <h1 className="mt-4 font-heading text-4xl font-semibold leading-tight text-foreground">
                 Manage your<br />ward&apos;s enrollment<br />in one place.
               </h1>
-              <p className="mt-4 text-[15px] leading-relaxed text-white/70">
+              <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
                 Sign in to submit applications, track admission status, and download
                 official documents.
               </p>
@@ -103,12 +101,12 @@ export default async function LoginPage({
             <div className="space-y-4">
               {features.map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex items-start gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                    <Icon className="size-4 text-white" />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="size-4 text-primary" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-white">{title}</p>
-                    <p className="text-xs leading-relaxed text-white/60">{desc}</p>
+                    <p className="text-sm font-semibold text-foreground">{title}</p>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{desc}</p>
                   </div>
                 </div>
               ))}
@@ -116,7 +114,7 @@ export default async function LoginPage({
 
             {/* Deadline countdown */}
             {openSession && (
-              <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-4 backdrop-blur-sm">
+              <div className="rounded-xl border border-border bg-muted px-4 py-4">
                 <DeadlineCountdown
                   closeAt={openSession.closeAt.toISOString()}
                   variant="loginPanel"
@@ -144,7 +142,7 @@ export default async function LoginPage({
           </div>
 
           {/* Form card */}
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7">
+          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm sm:p-7">
             <div className="mb-6">
               <h2 className="font-heading text-2xl font-semibold text-foreground">
                 Sign in

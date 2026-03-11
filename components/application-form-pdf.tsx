@@ -70,8 +70,10 @@ export function ApplicationFormPdf({
   const sessionLabel = `${sessionYear - 1}/${sessionYear}`;
   const receiptNo = `RCP-${applicationId.slice(0, 8).toUpperCase()}`;
 
-  // Derived accent — slightly lighter version of primary for backgrounds
-  const accentBg = "#f0f7ff";
+  // Minimal: light backgrounds, dark text, primary as accent
+  const accentBg = "#f9fafb";
+  const letterheadBg = "#ffffff";
+  const receiptBadgeBg = "#f3f4f6";
 
   const s = StyleSheet.create({
     page: {
@@ -81,12 +83,14 @@ export function ApplicationFormPdf({
       backgroundColor: "#ffffff",
     },
 
-    /* ── Letterhead ──────────────────────────────────────────── */
+    /* ── Letterhead (minimal: white, dark text, subtle border) ───────────────── */
     letterhead: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: colorPrimary,
+      backgroundColor: letterheadBg,
+      borderBottomWidth: 1,
+      borderBottomColor: "#e5e7eb",
       paddingHorizontal: 36,
       paddingVertical: 22,
     },
@@ -99,24 +103,24 @@ export function ApplicationFormPdf({
       width: 44,
       height: 44,
       borderRadius: 8,
-      backgroundColor: "rgba(255,255,255,0.25)",
+      backgroundColor: receiptBadgeBg,
     },
     schoolBlock: { flexDirection: "column" },
     schoolNameTxt: {
       fontSize: 15,
       fontFamily: "Helvetica-Bold",
-      color: "#ffffff",
+      color: "#111827",
       letterSpacing: 0.3,
     },
     schoolDescTxt: {
       fontSize: 8,
-      color: "rgba(255,255,255,0.82)",
+      color: "#6b7280",
       marginTop: 3,
     },
     receiptBadge: {
-      backgroundColor: "rgba(255,255,255,0.18)",
+      backgroundColor: receiptBadgeBg,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.4)",
+      borderColor: "#e5e7eb",
       borderRadius: 4,
       paddingHorizontal: 10,
       paddingVertical: 5,
@@ -124,7 +128,7 @@ export function ApplicationFormPdf({
     receiptBadgeTxt: {
       fontSize: 8,
       fontFamily: "Helvetica-Bold",
-      color: "#ffffff",
+      color: colorPrimary,
       letterSpacing: 1.5,
       textTransform: "uppercase",
     },
@@ -132,15 +136,22 @@ export function ApplicationFormPdf({
     /* ── Reference banner ────────────────────────────────────── */
     refBanner: {
       flexDirection: "row",
+      flexWrap: "wrap",
       alignItems: "center",
-      justifyContent: "space-between",
+      gap: 20,
       backgroundColor: accentBg,
-      borderBottomWidth: 2,
-      borderBottomColor: colorPrimary,
+      borderBottomWidth: 1,
+      borderBottomColor: "#e5e7eb",
       paddingHorizontal: 36,
       paddingVertical: 12,
     },
-    refGroup: { flexDirection: "row", alignItems: "center", gap: 6 },
+    refGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginRight: 20,
+    },
+    refGroupLast: { marginRight: 0 },
     refCaption: { fontSize: 8, color: "#6b7280", marginRight: 4 },
     refCode: {
       fontSize: 12,
@@ -233,8 +244,8 @@ export function ApplicationFormPdf({
       paddingHorizontal: 14,
       paddingVertical: 13,
       backgroundColor: "#f9fafb",
-      borderTopWidth: 2,
-      borderTopColor: colorPrimary,
+      borderTopWidth: 1,
+      borderTopColor: "#e5e7eb",
     },
     totalLabel: {
       flex: 1,
@@ -293,7 +304,7 @@ export function ApplicationFormPdf({
     notice: {
       marginTop: 20,
       borderLeftWidth: 3,
-      borderLeftColor: colorPrimary,
+      borderLeftColor: "#e5e7eb",
       paddingLeft: 10,
       paddingVertical: 4,
     },
@@ -358,9 +369,9 @@ export function ApplicationFormPdf({
               <Text style={s.schoolDescTxt}>{schoolDescription}</Text>
             </View>
           </View>
-          <View style={s.receiptBadge}>
+          {/* <View style={s.receiptBadge}>
             <Text style={s.receiptBadgeTxt}>Official Receipt</Text>
-          </View>
+          </View> */}
         </View>
 
         {/* ── Reference banner ── */}
@@ -379,7 +390,7 @@ export function ApplicationFormPdf({
               <Text style={s.refCode}>{paymentReference.toUpperCase()}</Text>
             </View>
           )}
-          <View style={s.refGroup}>
+          <View style={[s.refGroup, s.refGroupLast]}>
             <Text style={s.refCaption}>SESSION</Text>
             <Text style={s.refCode}>{sessionLabel}</Text>
           </View>

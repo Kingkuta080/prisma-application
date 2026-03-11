@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { initializePayment } from "@/actions/payment";
 import { Button } from "@/components/ui/button";
+import { DownloadReceiptButton } from "@/components/download-receipt-button";
 import { toast } from "sonner";
 import { useGlobalError } from "@/components/global-error-provider";
-import { CreditCard, Download, FileText, Loader2 } from "lucide-react";
+import { CreditCard, FileText, Loader2 } from "lucide-react";
 
 export function ApplicantDetailActions({
   applicationId,
@@ -20,6 +21,7 @@ export function ApplicantDetailActions({
   const router = useRouter();
   const globalError = useGlobalError();
   const [paying, setPaying] = useState(false);
+  const [downloadingAdmission, setDownloadingAdmission] = useState(false);
 
   async function handlePay() {
     setPaying(true);
@@ -65,6 +67,16 @@ export function ApplicantDetailActions({
     );
   }
 
+  function handleDownloadAdmission() {
+    if (downloadingAdmission) return;
+    setDownloadingAdmission(true);
+    try {
+      window.open(`/api/applications/${applicationId}/admission-letter`, "_blank");
+    } finally {
+      setTimeout(() => setDownloadingAdmission(false), 4000);
+    }
+  }
+
   return (
     <div className="flex flex-wrap gap-3">
       {!hasPaid && (
@@ -83,22 +95,30 @@ export function ApplicantDetailActions({
         </Button>
       )}
       {hasPaid && (
-        <Button variant="outline" asChild className="gap-2">
-          <a href={`/api/applications/${applicationId}/form`} download>
-            <Download className="size-4" />
-            Download Receipt
-          </a>
-        </Button>
+        <DownloadReceiptButton
+          applicationId={applicationId}
+          variant="outline"
+          className="gap-2"
+        />
       )}
       {hasAdmission && (
-        <Button variant="outline" asChild className="gap-2">
-          <a
-            href={`/api/applications/${applicationId}/admission-letter`}
-            download
-          >
-            <FileText className="size-4" />
-            Download Admission Letter
-          </a>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={handleDownloadAdmission}
+          disabled={downloadingAdmission}
+        >
+          {downloadingAdmission ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Preparing…
+            </>
+          ) : (
+            <>
+              <FileText className="size-4" />
+              Download Admission Letter
+            </>
+          )}
         </Button>
       )}
     </div>
