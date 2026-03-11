@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAppBaseUrl } from "@/lib/school-config";
 
 function randomHexToken(bytes = 32): string {
   const arr = new Uint8Array(bytes);
@@ -14,9 +15,10 @@ export async function GET(request: Request) {
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
+  const baseUrl = getAppBaseUrl() || new URL(request.url).origin;
   if (!token?.trim() || !email?.trim()) {
     return NextResponse.redirect(
-      new URL("/login?error=invalid_link", request.url)
+      new URL("/login?error=invalid_link", baseUrl)
     );
   }
 
@@ -32,7 +34,7 @@ export async function GET(request: Request) {
 
   if (!verification) {
     return NextResponse.redirect(
-      new URL("/login?error=invalid_or_expired_link", request.url)
+      new URL("/login?error=invalid_or_expired_link", baseUrl)
     );
   }
   if (new Date() > verification.expires) {
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
       },
     });
     return NextResponse.redirect(
-      new URL("/login?error=link_expired", request.url)
+      new URL("/login?error=link_expired", baseUrl)
     );
   }
 
@@ -70,8 +72,7 @@ export async function GET(request: Request) {
     data: { email: emailNorm, token: oneTimeToken, expiresAt },
   });
 
-  const base = new URL(request.url).origin;
-  const loginUrl = new URL("/api/auth/one-time-login", base);
+  const loginUrl = new URL("/api/auth/one-time-login", baseUrl);
   loginUrl.searchParams.set("token", oneTimeToken);
   loginUrl.searchParams.set("email", emailNorm);
   return NextResponse.redirect(loginUrl);

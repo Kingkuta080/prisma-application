@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getAppBaseUrl } from "@/lib/school-config";
 
 const transport =
   process.env.SMTP_HOST && process.env.SMTP_USER
@@ -17,8 +18,11 @@ const transport =
     : null;
 
 const from = process.env.MAIL_FROM ?? "noreply@example.com";
-const baseUrl =
-  process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "http://localhost:3000";
+
+/** Base URL for verification links: prefer APP_URL / NEXTAUTH_URL / VERCEL_URL so links never point to localhost in production. */
+function getVerificationBaseUrl(): string {
+  return getAppBaseUrl() || "http://localhost:3000";
+}
 
 export async function sendVerificationEmail(email: string, token: string) {
   if (!transport) {
@@ -27,6 +31,7 @@ export async function sendVerificationEmail(email: string, token: string) {
     );
     return;
   }
+  const baseUrl = getVerificationBaseUrl();
   const url = `${baseUrl}/api/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
   await transport.sendMail({
     from,
