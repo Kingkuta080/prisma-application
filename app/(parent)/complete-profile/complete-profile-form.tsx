@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { updateProfile } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +26,6 @@ export function CompleteProfileForm({
   defaultGuardianEmail?: string;
   defaultMotherPhone?: string;
 }) {
-  const router = useRouter();
-  const { update: updateSession } = useSession();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -61,9 +57,12 @@ export function CompleteProfileForm({
         setError(result.error);
         return;
       }
-      await updateSession({ user: { name, phone } });
-      router.refresh();
-      router.push("/");
+      // Navigate with full page load so session is refetched and dashboard loads correctly
+      window.location.href = "/";
+      return;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
