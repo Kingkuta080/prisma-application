@@ -113,25 +113,30 @@ function FormSection({
   icon: Icon,
   title,
   description,
+  action,
   children,
 }: {
   icon: React.ElementType;
   title: string;
   description?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3 border-b border-border pb-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="size-4 text-primary" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-foreground">{title}</p>
-          {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
-          )}
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Icon className="size-4 text-primary" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">{title}</p>
+            {description && (
+              <p className="text-xs text-muted-foreground">{description}</p>
+            )}
+          </div>
         </div>
+        {action != null ? <div className="shrink-0">{action}</div> : null}
       </div>
       {children}
     </div>
@@ -152,6 +157,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [cameraPreviewOpen, setCameraPreviewOpen] = useState(false);
+  const [cameraOpening, setCameraOpening] = useState(false);
   const [capturedDataUrl, setCapturedDataUrl] = useState<string | null>(null);
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [previousSchools, setPreviousSchools] = useState<PreviousSchoolRow[]>([]);
@@ -373,13 +379,18 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
       toast.error("Camera not supported on this device");
       return;
     }
+    setCameraOpening(true);
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "user" } })
       .then((stream) => {
         cameraStreamRef.current = stream;
+        setCameraOpening(false);
         setCameraPreviewOpen(true);
       })
-      .catch(() => toast.error("Could not access camera. Check permissions."));
+      .catch(() => {
+        setCameraOpening(false);
+        toast.error("Could not access camera. Check permissions.");
+      });
   }
 
   const setCameraVideoRef = useCallback((node: HTMLVideoElement | null) => {
@@ -427,6 +438,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
   function closeCameraPreview() {
     stopCameraStream();
     setCameraPreviewOpen(false);
+    setCameraOpening(false);
   }
 
   /* ── Render ──────────────────────────────────────────────────────────── */
@@ -811,9 +823,19 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                     size="sm"
                     className="gap-1.5"
                     onClick={openCameraPreview}
+                    disabled={cameraPreviewOpen || cameraOpening}
                   >
-                    <Camera className="size-3.5" />
-                    Use camera
+                    {cameraOpening ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        Opening camera…
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="size-3.5" />
+                        Use camera
+                      </>
+                    )}
                   </Button>
                   {photoUrl && (
                     <Button
@@ -1062,6 +1084,21 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             icon={School}
             title="Previous Schools"
             description="List schools the applicant has previously attended, if any."
+            action={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  setEditingSchoolId(null);
+                  setSchoolModalOpen(true);
+                }}
+              >
+                <Plus className="size-3.5" />
+                Add school
+              </Button>
+            }
           >
             <div className="space-y-3">
               {previousSchools.length === 0 ? (
@@ -1071,7 +1108,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                     No schools added yet
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Click &quot;Add school&quot; to add a previous school.
+                    Click &quot;Add school&quot; above to add a previous school.
                   </p>
                 </div>
               ) : (
@@ -1114,20 +1151,6 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                   ))}
                 </div>
               )}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  setEditingSchoolId(null);
-                  setSchoolModalOpen(true);
-                }}
-              >
-                <Plus className="size-3.5" />
-                Add school
-              </Button>
             </div>
           </FormSection>
 
@@ -1156,13 +1179,18 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
 
           {/* ── Submit ──────────────────────────────────────────────────── */}
           <div className="flex flex-col-reverse gap-3 border-t border-border pt-4 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" asChild>
+            <Button
+              type="button"
+              variant="outline"
+              asChild
+              className="min-h-[44px] touch-manipulation"
+            >
               <Link href="/">Cancel</Link>
             </Button>
             <Button
               type="submit"
               disabled={loading || photoUploading}
-              className="gap-2 font-semibold"
+              className="min-h-[44px] touch-manipulation gap-2 font-semibold"
             >
               {loading ? (
                 <>

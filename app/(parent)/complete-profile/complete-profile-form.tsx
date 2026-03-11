@@ -75,8 +75,40 @@ export function CompleteProfileForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <input type="hidden" name="name" defaultValue={defaultName} />
-      <input type="hidden" name="phone" defaultValue={defaultPhone} />
+      {/* ── Your details (required for account) ────────────────────────────── */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold text-foreground">
+          Your details
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="name">Your full name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              required
+              defaultValue={defaultName}
+              placeholder="Full name"
+              className="h-10"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="phone">Your phone number</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              defaultValue={defaultPhone}
+              placeholder="+234 800 000 0000"
+              className="h-10"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* ── Guardian Information ──────────────────────────────────────────── */}
       <div className="space-y-4">
@@ -173,7 +205,11 @@ export function CompleteProfileForm({
       )}
 
       {/* ── Submit ───────────────────────────────────────────────────────── */}
-      <Button type="submit" className="w-full gap-2 font-semibold" disabled={loading}>
+      <Button
+        type="submit"
+        className="min-h-[44px] w-full touch-manipulation gap-2 font-semibold"
+        disabled={loading}
+      >
         {loading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
