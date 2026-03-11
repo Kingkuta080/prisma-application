@@ -112,19 +112,18 @@ export type UpdateProfileData = {
 };
 
 export async function updateProfile(data: UpdateProfileData) {
-  const { name, phone } = data;
-  if (!name?.trim() || !phone?.trim()) {
-    return { error: "Full name and phone are required" };
-  }
   const { auth } = await import("@/auth");
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
+  const name = data.name?.trim();
+  const phone = data.phone?.trim();
+
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      name: name.trim(),
-      phone: phone.trim(),
+      ...(name != null && name !== "" && { name }),
+      ...(phone != null && phone !== "" && { phone }),
       guardianFullName: data.guardianFullName?.trim() ?? undefined,
       residence: data.residence?.trim() ?? undefined,
       occupation: data.occupation?.trim() ?? undefined,

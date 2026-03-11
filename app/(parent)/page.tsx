@@ -29,12 +29,6 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const hasName = !!session.user.name?.trim();
-  const hasPhone = !!session.user.phone?.trim();
-  if (!hasName || !hasPhone) {
-    redirect("/complete-profile");
-  }
-
   const [openSessions, applicationsRaw] = await Promise.all([
     prisma.applicationSession.findMany({
       where: {
