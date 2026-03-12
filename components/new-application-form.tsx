@@ -37,7 +37,6 @@ import {
   Info,
   ImagePlus,
 } from "lucide-react";
-import { NIGERIAN_STATES, LGAS_BY_STATE } from "@/lib/nigeria-data";
 
 const NATIONALITIES = [
   "Nigerian",
@@ -61,34 +60,6 @@ const NATIONALITIES = [
 ];
 
 const RELIGIONS = ["Islam", "Christianity", "Traditional / Indigenous", "Other"];
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-const currentYear = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: currentYear - 1990 + 1 }, (_, i) => currentYear - i);
-
-function formatSchoolPeriod(fromMonth: string, fromYear: string, toMonth: string, toYear: string, toPresent: boolean): string {
-  if (!fromMonth || !fromYear) return "";
-  if (toPresent) return `${fromMonth} ${fromYear} – Present`;
-  if (toMonth && toYear) return `${fromMonth} ${fromYear} – ${toMonth} ${toYear}`;
-  return `${fromMonth} ${fromYear}`;
-}
-
-function parseSchoolPeriod(date: string): { fromMonth: string; fromYear: string; toMonth: string; toYear: string; toPresent: boolean } {
-  const presentMatch = date.match(/^(.+?)\s+(\d{4})\s*–\s*Present$/i);
-  if (presentMatch) {
-    return { fromMonth: presentMatch[1].trim(), fromYear: presentMatch[2], toMonth: "", toYear: "", toPresent: true };
-  }
-  const rangeMatch = date.match(/^(.+?)\s+(\d{4})\s*–\s*(.+?)\s+(\d{4})$/);
-  if (rangeMatch) {
-    return { fromMonth: rangeMatch[1].trim(), fromYear: rangeMatch[2], toMonth: rangeMatch[3].trim(), toYear: rangeMatch[4], toPresent: false };
-  }
-  const singleMatch = date.match(/^(.+?)\s+(\d{4})$/);
-  if (singleMatch) {
-    return { fromMonth: singleMatch[1].trim(), fromYear: singleMatch[2], toMonth: "", toYear: "", toPresent: false };
-  }
-  return { fromMonth: "", fromYear: "", toMonth: "", toYear: "", toPresent: false };
-}
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 
@@ -134,14 +105,12 @@ function FormSection({
   description,
   action,
   children,
-  action,
 }: {
   icon: React.ElementType;
   title: string;
   description?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
-  action?: React.ReactNode;
 }) {
   return (
     <div className="space-y-4">
@@ -190,19 +159,16 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
   const [schoolToMonth, setSchoolToMonth] = useState("");
   const [schoolToYear, setSchoolToYear] = useState("");
   const [schoolToPresent, setSchoolToPresent] = useState(false);
-  const [capturedDataUrl, setCapturedDataUrl] = useState<string | null>(null);
-  const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedLga, setSelectedLga] = useState("");
 
   const activeSessionId = sessions[0]?.id ?? "";
-  const lgaOptions = selectedState ? (LGAS_BY_STATE[selectedState] ?? []) : [];
   const selectedSession = useMemo(
     () => sessions.find((s) => s.id === activeSessionId),
     [sessions, activeSessionId]
   );
   const classOptions = selectedSession?.availableClasses ?? [];
-  const lgaOptions = selectedState ? LGAS_BY_STATE[selectedState] ?? [] : [];
+  const lgaOptions = selectedState ? (LGAS_BY_STATE[selectedState] ?? []) : [];
 
   /* ── Previous schools helpers ─────────────────────────────────────────── */
 
