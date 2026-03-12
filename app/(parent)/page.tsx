@@ -29,12 +29,6 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const hasName = !!session.user.name?.trim();
-  const hasPhone = !!session.user.phone?.trim();
-  if (!hasName || !hasPhone) {
-    redirect("/complete-profile");
-  }
-
   const [openSessions, applicationsRaw] = await Promise.all([
     prisma.applicationSession.findMany({
       where: {
@@ -114,33 +108,36 @@ export default async function DashboardPage() {
 
       <div className="space-y-4 sm:space-y-6">
         {/* ── Welcome banner ───────────────────────────────────────────────── */}
-        <div
-          className="overflow-hidden rounded-2xl border border-transparent shadow-md"
-          style={{
-            background:
-              "linear-gradient(135deg, var(--brand-primary) 0%, color-mix(in srgb, var(--brand-primary) 70%, var(--brand-accent)) 100%)",
-          }}
-        >
-          <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6 sm:gap-4">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-primary/3 shadow-sm">
+          {/* Subtle brand tint + pattern */}
+          <div className="pointer-events-none absolute inset-0 bg-primary/3" />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, var(--primary) 1px, transparent 0)",
+              backgroundSize: "26px 26px",
+            }}
+          />
+          <div className="relative flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6 sm:gap-4">
             <div className="min-w-0 flex-1">
-              <h1 className="font-heading text-lg font-semibold text-white sm:text-2xl">
+              <h1 className="font-heading text-lg font-semibold text-foreground sm:text-2xl">
                 Welcome back, {firstName}
               </h1>
               {openSessions.length > 0 && currentSession ? (
                 <>
-                  <p className="mt-0.5 text-sm text-white/75">
+                  <p className="mt-0.5 text-sm text-muted-foreground">
                     {currentSession.year} enrollment is open — submit before the deadline.
                   </p>
                   <div className="mt-2 sm:mt-3">
                     <DeadlineCountdown
                       closeAt={currentSession.closeAt.toISOString()}
                       compact
-                      inverse
                     />
                   </div>
                 </>
               ) : (
-                <p className="mt-0.5 text-sm text-white/75">
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   Here&apos;s a summary of your ward&apos;s enrollment activity.
                 </p>
               )}
@@ -148,7 +145,7 @@ export default async function DashboardPage() {
             {openSessions.length > 0 && (
               <Button
                 asChild
-                className="w-full shrink-0 bg-white font-semibold text-primary shadow hover:bg-white/90 sm:w-auto"
+                className="w-full shrink-0 bg-primary font-semibold text-primary-foreground shadow hover:bg-primary/90 sm:w-auto"
               >
                 <Link href="/new-application">
                   <Plus className="size-4" />

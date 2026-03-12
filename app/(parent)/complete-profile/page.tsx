@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { CompleteProfileForm } from "./complete-profile-form";
 import { UserCircle } from "lucide-react";
 
@@ -11,20 +10,6 @@ export default async function CompleteProfilePage() {
   const hasName = !!session.user.name?.trim();
   const hasPhone = !!session.user.phone?.trim();
   if (hasName && hasPhone) redirect("/");
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      name: true,
-      phone: true,
-      guardianFullName: true,
-      residence: true,
-      occupation: true,
-      guardianPhone: true,
-      guardianEmail: true,
-      motherPhone: true,
-    },
-  });
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -62,16 +47,7 @@ export default async function CompleteProfilePage() {
 
       {/* Form card — flush on mobile, rounded card on tablet+ */}
       <div className="bg-white p-4 sm:rounded-2xl sm:border sm:border-border sm:p-6 sm:shadow-sm md:p-8">
-        <CompleteProfileForm
-          defaultName={user?.name ?? session.user.name ?? ""}
-          defaultPhone={user?.phone ?? session.user.phone ?? ""}
-          defaultGuardianFullName={user?.guardianFullName ?? ""}
-          defaultResidence={user?.residence ?? ""}
-          defaultOccupation={user?.occupation ?? ""}
-          defaultGuardianPhone={user?.guardianPhone ?? ""}
-          defaultGuardianEmail={user?.guardianEmail ?? ""}
-          defaultMotherPhone={user?.motherPhone ?? ""}
-        />
+        <CompleteProfileForm />
       </div>
     </div>
   );

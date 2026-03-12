@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { NIGERIAN_STATES, LGAS_BY_STATE } from "@/lib/nigeria-data";
 import {
   Camera,
   Upload,
@@ -48,6 +49,24 @@ type Session = {
 
 type PreviousSchoolRow = { id: string; schoolName: string; date: string };
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - 1990 + 1 }, (_, i) => 1990 + i);
+
 /* ── Shared select class ────────────────────────────────────────────────── */
 
 /* text-base on mobile prevents iOS Safari zoom-on-focus (< 16px triggers it),
@@ -62,24 +81,29 @@ function FormSection({
   title,
   description,
   children,
+  action,
 }: {
   icon: React.ElementType;
   title: string;
   description?: string;
   children: React.ReactNode;
+  action?: React.ReactNode;
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3 border-b border-border pb-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="size-4 text-primary" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-foreground">{title}</p>
-          {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
-          )}
+      <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Icon className="size-4 text-primary" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">{title}</p>
+            {description && (
+              <p className="text-xs text-muted-foreground">{description}</p>
+            )}
+          </div>
         </div>
+        {action && <div className="mt-1 flex shrink-0 items-center">{action}</div>}
       </div>
       {children}
     </div>
@@ -105,7 +129,15 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
   const [schoolModalOpen, setSchoolModalOpen] = useState(false);
   const [editingSchoolId, setEditingSchoolId] = useState<string | null>(null);
   const [schoolNameInput, setSchoolNameInput] = useState("");
-  const [schoolDateInput, setSchoolDateInput] = useState("");
+  const [schoolFromMonth, setSchoolFromMonth] = useState("");
+  const [schoolFromYear, setSchoolFromYear] = useState("");
+  const [schoolToMonth, setSchoolToMonth] = useState("");
+  const [schoolToYear, setSchoolToYear] = useState("");
+  const [schoolToPresent, setSchoolToPresent] = useState(false);
+  const [capturedDataUrl, setCapturedDataUrl] = useState<string | null>(null);
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedLga, setSelectedLga] = useState("");
 
   const activeSessionId = sessions[0]?.id ?? "";
   const selectedSession = useMemo(
@@ -113,13 +145,23 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
     [sessions, activeSessionId]
   );
   const classOptions = selectedSession?.availableClasses ?? [];
+  const lgaOptions = selectedState ? LGAS_BY_STATE[selectedState] ?? [] : [];
 
   /* ── Previous schools helpers ─────────────────────────────────────────── */
 
   function addOrUpdateSchool() {
     const name = schoolNameInput.trim();
-    const date = schoolDateInput.trim();
-    if (!name || !date) return;
+    if (!name) return;
+
+    const fromValid = !!schoolFromMonth && !!schoolFromYear;
+    const toValid =
+      schoolToPresent || (!!schoolToMonth && !!schoolToYear);
+
+    if (!fromValid || !toValid) return;
+
+    const from = `${schoolFromMonth} ${schoolFromYear}`;
+    const to = schoolToPresent ? "Present" : `${schoolToMonth} ${schoolToYear}`;
+    const date = `${from} – ${to}`;
     if (editingSchoolId) {
       setPreviousSchools((prev) =>
         prev.map((p) =>
@@ -134,14 +176,35 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
       ]);
     }
     setSchoolNameInput("");
-    setSchoolDateInput("");
+    setSchoolFromMonth("");
+    setSchoolFromYear("");
+    setSchoolToMonth("");
+    setSchoolToYear("");
+    setSchoolToPresent(false);
     setSchoolModalOpen(false);
   }
 
   function openEditSchool(row: PreviousSchoolRow) {
     setEditingSchoolId(row.id);
     setSchoolNameInput(row.schoolName);
-    setSchoolDateInput(row.date);
+    const [fromPart, toPart] = row.date.split("–").map((p) => p.trim());
+    if (fromPart) {
+      const [fromMonth, fromYear] = fromPart.split(" ");
+      setSchoolFromMonth(fromMonth ?? "");
+      setSchoolFromYear(fromYear ?? "");
+    }
+    if (toPart) {
+      if (toPart === "Present") {
+        setSchoolToPresent(true);
+        setSchoolToMonth("");
+        setSchoolToYear("");
+      } else {
+        const [toMonth, toYear] = toPart.split(" ");
+        setSchoolToMonth(toMonth ?? "");
+        setSchoolToYear(toYear ?? "");
+        setSchoolToPresent(false);
+      }
+    }
     setSchoolModalOpen(true);
   }
 
@@ -151,14 +214,22 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
       setEditingSchoolId(null);
       setSchoolModalOpen(false);
       setSchoolNameInput("");
-      setSchoolDateInput("");
+      setSchoolFromMonth("");
+      setSchoolFromYear("");
+      setSchoolToMonth("");
+      setSchoolToYear("");
+      setSchoolToPresent(false);
     }
   }
 
   useEffect(() => {
     if (!editingSchoolId && schoolModalOpen) {
       setSchoolNameInput("");
-      setSchoolDateInput("");
+      setSchoolFromMonth("");
+      setSchoolFromYear("");
+      setSchoolToMonth("");
+      setSchoolToYear("");
+      setSchoolToPresent(false);
     }
   }, [schoolModalOpen, editingSchoolId]);
 
@@ -325,13 +396,27 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     stopCameraStream();
     setCameraPreviewOpen(false);
-    // Upload to Cloudinary (shows preview immediately, replaces with URL)
-    await handlePhotoSelected(dataUrl);
+    setCapturedDataUrl(dataUrl);
+    setShowRetakeModal(true);
   }
 
   function closeCameraPreview() {
     stopCameraStream();
     setCameraPreviewOpen(false);
+  }
+
+  function handleRetakePhoto() {
+    setShowRetakeModal(false);
+    setCapturedDataUrl(null);
+    openCameraPreview();
+  }
+
+  async function handleUseCapturedPhoto() {
+    if (!capturedDataUrl) return;
+    const dataUrl = capturedDataUrl;
+    setShowRetakeModal(false);
+    setCapturedDataUrl(null);
+    await handlePhotoSelected(dataUrl);
   }
 
   /* ── Render ──────────────────────────────────────────────────────────── */
@@ -383,6 +468,50 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
         </DialogContent>
       </Dialog>
 
+      {/* ── Camera retake/confirm dialog ─────────────────────────────────── */}
+      <Dialog
+        open={showRetakeModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowRetakeModal(false);
+            setCapturedDataUrl(null);
+          }
+        }}
+      >
+        <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-4 p-4 sm:p-6">
+          <DialogTitle>Keep this photo?</DialogTitle>
+          <DialogDescription>
+            Review the captured photo. You can retake it or continue with this one.
+          </DialogDescription>
+          {capturedDataUrl && (
+            <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl border border-border bg-muted">
+              <img
+                src={capturedDataUrl}
+                alt="Captured applicant"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleRetakePhoto}
+              className="w-full sm:w-auto"
+            >
+              Retake
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUseCapturedPhoto}
+              className="w-full gap-2 sm:w-auto"
+            >
+              Use This Photo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* ── Previous school dialog ──────────────────────────────────────── */}
       <Dialog open={schoolModalOpen} onOpenChange={setSchoolModalOpen}>
         <DialogContent>
@@ -390,7 +519,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             {editingSchoolId ? "Edit school" : "Add previous school"}
           </DialogTitle>
           <DialogDescription>
-            Enter the school name and the period attended (e.g. 2018 – 2021).
+            Enter the school name and the period attended.
           </DialogDescription>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -404,14 +533,94 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="modalSchoolDate">Period attended</Label>
-              <Input
-                id="modalSchoolDate"
-                value={schoolDateInput}
-                onChange={(e) => setSchoolDateInput(e.target.value)}
-                placeholder="e.g. 2018 – 2021"
-                className="h-10"
-              />
+              <Label>Period attended</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <span className="block text-xs font-medium text-muted-foreground">
+                    From
+                  </span>
+                  <div className="flex gap-2">
+                    <select
+                      className={selectCls}
+                      title="From month"
+                      value={schoolFromMonth}
+                      onChange={(e) => setSchoolFromMonth(e.target.value)}
+                    >
+                      <option value="">Month</option>
+                      {MONTHS.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      className={selectCls}
+                      title="From year"
+                      value={schoolFromYear}
+                      onChange={(e) => setSchoolFromYear(e.target.value)}
+                    >
+                      <option value="">Year</option>
+                      {YEARS.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="block text-xs font-medium text-muted-foreground">
+                    To
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <select
+                        className={selectCls}
+                        title="To month"
+                        value={schoolToMonth}
+                        onChange={(e) => setSchoolToMonth(e.target.value)}
+                        disabled={schoolToPresent}
+                      >
+                        <option value="">Month</option>
+                        {MONTHS.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className={selectCls}
+                        title="To year"
+                        value={schoolToYear}
+                        onChange={(e) => setSchoolToYear(e.target.value)}
+                        disabled={schoolToPresent}
+                      >
+                        <option value="">Year</option>
+                        {YEARS.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-border"
+                        checked={schoolToPresent}
+                        onChange={(e) => {
+                          setSchoolToPresent(e.target.checked);
+                          if (e.target.checked) {
+                            setSchoolToMonth("");
+                            setSchoolToYear("");
+                          }
+                        }}
+                      />
+                      Present
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -423,7 +632,12 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             </Button>
             <Button
               onClick={addOrUpdateSchool}
-              disabled={!schoolNameInput.trim() || !schoolDateInput.trim()}
+              disabled={
+                !schoolNameInput.trim() ||
+                !schoolFromMonth ||
+                !schoolFromYear ||
+                (!schoolToPresent && (!schoolToMonth || !schoolToYear))
+              }
             >
               {editingSchoolId ? "Save changes" : "Add school"}
             </Button>
@@ -495,13 +709,13 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
 
         {/* Session info banner */}
         {selectedSession && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="mb-6 flex flex-col gap-1 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 sm:flex-row sm:items-center">
             <GraduationCap className="size-4 shrink-0 text-primary" />
             <div className="flex-1 text-sm">
               <span className="font-semibold text-foreground">
                 {selectedSession.year} Enrollment Session
               </span>
-              <span className="ml-2 text-muted-foreground">
+              <span className="ml-1 text-muted-foreground">
                 — Application fee:{" "}
                 <span className="font-semibold text-foreground">
                   ₦{selectedSession.amount.toLocaleString("en-NG")}
@@ -668,6 +882,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                   id="class"
                   name="class"
                   required
+                  title="Class"
                   aria-label="Class"
                   className={selectCls}
                 >
@@ -682,11 +897,11 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             </FormSection>
           )}
 
-          {/* ── Section 3: Candidate name ────────────────────────────────── */}
+          {/* ── Section 3: Applicant name ────────────────────────────────── */}
           <FormSection
             icon={User}
-            title="Candidate's Full Name"
-            description="Enter the applicant's legal name as it appears on official documents."
+            title="Applicant's Full Name"
+            description="Enter the applicant's legal name."
           >
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
@@ -731,10 +946,10 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             </div>
           </FormSection>
 
-          {/* ── Section 4: Personal info ─────────────────────────────────── */}
+          {/* ── Section 4: Applicant info ────────────────────────────────── */}
           <FormSection
             icon={User}
-            title="Personal Information"
+            title="Applicant Information"
             description="Basic personal details about the applicant."
           >
             <div className="space-y-4">
@@ -759,6 +974,7 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                     id="wardGender"
                     name="wardGender"
                     required
+                    title="Gender"
                     aria-label="Gender"
                     className={selectCls}
                   >
@@ -782,45 +998,133 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="stateOfOrigin">State of Origin</Label>
-                  <Input
+                  <select
                     id="stateOfOrigin"
                     name="stateOfOrigin"
-                    type="text"
-                    placeholder="e.g. Lagos"
-                    className="h-10"
-                  />
+                    title="State of Origin"
+                    aria-label="State of Origin"
+                    className={selectCls}
+                    value={selectedState}
+                    onChange={(e) => {
+                      setSelectedState(e.target.value);
+                      setSelectedLga("");
+                    }}
+                  >
+                    <option value="">Select state…</option>
+                    {NIGERIAN_STATES.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="lga">Local Government Area</Label>
-                  <Input
+                  <select
                     id="lga"
                     name="lga"
-                    type="text"
-                    placeholder="e.g. Ikeja"
-                    className="h-10"
-                  />
+                    title="Local Government Area"
+                    aria-label="Local Government Area"
+                    className={selectCls}
+                    value={selectedLga}
+                    onChange={(e) => setSelectedLga(e.target.value)}
+                    disabled={!selectedState || lgaOptions.length === 0}
+                  >
+                    <option value="">
+                      {selectedState ? "Select LGA…" : "Select a state first…"}
+                    </option>
+                    {lgaOptions.map((lga) => (
+                      <option key={lga} value={lga}>
+                        {lga}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="nationality">Nationality</Label>
-                  <Input
+                  <select
                     id="nationality"
                     name="nationality"
-                    type="text"
-                    placeholder="e.g. Nigerian"
-                    className="h-10"
-                  />
+                    title="Nationality"
+                    aria-label="Nationality"
+                    className={selectCls}
+                  >
+                    <option value="">Select nationality…</option>
+                    <option value="Nigerian">Nigerian</option>
+                    <option value="Afghan">Afghan</option>
+                    <option value="Algerian">Algerian</option>
+                    <option value="American">American</option>
+                    <option value="Argentinian">Argentinian</option>
+                    <option value="Australian">Australian</option>
+                    <option value="Bangladeshi">Bangladeshi</option>
+                    <option value="Brazilian">Brazilian</option>
+                    <option value="British">British</option>
+                    <option value="Cameroonian">Cameroonian</option>
+                    <option value="Canadian">Canadian</option>
+                    <option value="Chadian">Chadian</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Congolese">Congolese</option>
+                    <option value="Dutch">Dutch</option>
+                    <option value="Egyptian">Egyptian</option>
+                    <option value="Ethiopian">Ethiopian</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                    <option value="Ghanaian">Ghanaian</option>
+                    <option value="Indian">Indian</option>
+                    <option value="Indonesian">Indonesian</option>
+                    <option value="Irish">Irish</option>
+                    <option value="Italian">Italian</option>
+                    <option value="Ivorian">Ivorian</option>
+                    <option value="Kenyan">Kenyan</option>
+                    <option value="Liberian">Liberian</option>
+                    <option value="Libyan">Libyan</option>
+                    <option value="Malaysian">Malaysian</option>
+                    <option value="Malian">Malian</option>
+                    <option value="Moroccan">Moroccan</option>
+                    <option value="Nigerien">Nigerien</option>
+                    <option value="Norwegian">Norwegian</option>
+                    <option value="Pakistani">Pakistani</option>
+                    <option value="Polish">Polish</option>
+                    <option value="Portuguese">Portuguese</option>
+                    <option value="Rwandan">Rwandan</option>
+                    <option value="Saudi Arabian">Saudi Arabian</option>
+                    <option value="Scottish">Scottish</option>
+                    <option value="Senegalese">Senegalese</option>
+                    <option value="Sierra Leonean">Sierra Leonean</option>
+                    <option value="Somali">Somali</option>
+                    <option value="South African">South African</option>
+                    <option value="South Sudanese">South Sudanese</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="Sudanese">Sudanese</option>
+                    <option value="Swedish">Swedish</option>
+                    <option value="Tanzanian">Tanzanian</option>
+                    <option value="Togolese">Togolese</option>
+                    <option value="Turkish">Turkish</option>
+                    <option value="Ugandan">Ugandan</option>
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="Zimbabwean">Zimbabwean</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="religion">Religion</Label>
-                  <Input
+                  <select
                     id="religion"
                     name="religion"
-                    type="text"
-                    placeholder="e.g. Christianity"
-                    className="h-10"
-                  />
+                    title="Religion"
+                    aria-label="Religion"
+                    className={selectCls}
+                  >
+                    <option value="">Select religion…</option>
+                    <option value="Islam">Islam</option>
+                    <option value="Christianity">Christianity</option>
+                    <option value="Traditional / Indigenous">
+                      Traditional / Indigenous
+                    </option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -854,6 +1158,21 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             icon={School}
             title="Previous Schools"
             description="List schools the applicant has previously attended, if any."
+            action={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  setEditingSchoolId(null);
+                  setSchoolModalOpen(true);
+                }}
+              >
+                <Plus className="size-3.5" />
+                Add school
+              </Button>
+            }
           >
             <div className="space-y-3">
               {previousSchools.length === 0 ? (
@@ -906,20 +1225,6 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                   ))}
                 </div>
               )}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  setEditingSchoolId(null);
-                  setSchoolModalOpen(true);
-                }}
-              >
-                <Plus className="size-3.5" />
-                Add school
-              </Button>
             </div>
           </FormSection>
 
@@ -933,14 +1238,20 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
 
           {/* ── Fee notice ──────────────────────────────────────────────── */}
           {selectedSession && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/30 px-4 py-3 text-[13px] text-muted-foreground">
+            <div className="flex flex-col items-start gap-2.5 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center">
               <Info className="mt-0.5 size-4 shrink-0" />
-              After submitting, you&apos;ll be redirected to pay the application
-              fee of{" "}
-              <span className="font-semibold text-foreground">
-                ₦{selectedSession.amount.toLocaleString("en-NG")}
-              </span>{" "}
-              to confirm your application.
+              <div className="flex-1 text-sm leading-relaxed">
+                <p>
+                  After submitting, you&apos;ll be redirected to pay the application
+                  fee of
+                </p>
+                <p className="mt-0.5 font-heading text-base font-semibold text-foreground">
+                  ₦{selectedSession.amount.toLocaleString("en-NG")}
+                </p>
+                <p className="mt-0.5">
+                  to confirm your application.
+                </p>
+              </div>
             </div>
           )}
 

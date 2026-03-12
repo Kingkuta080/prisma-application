@@ -8,10 +8,13 @@ type UploadResult = { url: string } | { error: string };
 
 function getS3Client() {
   return new S3Client({
-    region: process.env.AWS_REGION!,
+    // Region is required by the SDK but ignored for many S3-compatible providers.
+    // A default is fine when using a custom endpoint.
+    region: "us-east-1",
+    endpoint: process.env.S3_ENDPOINT!,
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
     },
   });
 }
@@ -25,10 +28,10 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
-  const bucket = process.env.AWS_S3_BUCKET?.trim();
-  const region = process.env.AWS_REGION?.trim();
+  const bucket = process.env.S3_BUCKET?.trim();
+  const publicUrlBase = process.env.S3_PUBLIC_URL?.trim();
 
-  if (!bucket || !region) {
+  if (!bucket || !publicUrlBase) {
     return { error: "Image upload is not configured" };
   }
 
@@ -63,8 +66,10 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
       })
     );
 
-    // Standard S3 public URL
-    const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    // Public URL is derived from the configured base, which supports any
+    // S3-compatible provider (AWS, MinIO, DigitalOcean Spaces, etc.).
+    const normalizedBase = publicUrlBase.replace(/\/+$/, "");
+    const url = `${normalizedBase}/${key}`;
     return { url };
   } catch (err) {
     console.error("S3 upload failed:", err);

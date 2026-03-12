@@ -116,19 +116,26 @@ export function DeadlineCountdown({
               { value: left.hours, label: "h" },
               { value: left.minutes, label: "m" },
               { value: left.seconds, label: "s" },
-            ].map(({ value, label }) => (
-              <span
-                key={label}
-                className={`inline-flex items-baseline gap-0.5 rounded-lg px-2 py-1 text-sm font-bold tabular-nums ${
-                  isAlertMode
-                    ? "bg-white/20 text-red-200"
-                    : "bg-white/15 text-white"
-                }`}
-              >
-                {String(value).padStart(2, "0")}
-                <span className="text-[10px] font-normal opacity-75">{label}</span>
-              </span>
-            ))}
+            ].map(({ value, label }) => {
+              const baseClasses =
+                "inline-flex items-baseline gap-0.5 rounded-lg px-2 py-1 text-sm font-bold tabular-nums";
+              const colorClasses = inverse
+                ? isAlertMode
+                  ? "bg-white/20 text-red-200"
+                  : "bg-white/15 text-white"
+                : isAlertMode
+                ? "bg-red-50 text-red-700"
+                : "bg-primary/10 text-primary";
+
+              return (
+                <span key={label} className={`${baseClasses} ${colorClasses}`}>
+                  {String(value).padStart(2, "0")}
+                  <span className="text-[10px] font-normal opacity-75">
+                    {label}
+                  </span>
+                </span>
+              );
+            })}
           </div>
           {/* Desktop: single line */}
           <p

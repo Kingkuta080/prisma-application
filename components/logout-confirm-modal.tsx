@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,17 +18,11 @@ type LogoutConfirmModalProps = {
 export function LogoutConfirmModal({ open, onOpenChange }: LogoutConfirmModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="w-[calc(100vw-2rem)] max-w-sm"
-        aria-describedby="logout-description"
-        aria-labelledby="logout-title"
-      >
-        <DialogHeader>
-          <DialogTitle id="logout-title">Sign out</DialogTitle>
-          <DialogDescription id="logout-description">
-            Are you sure you want to sign out?
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-sm">
+        <DialogTitle>Sign out</DialogTitle>
+        <DialogDescription>
+          Are you sure you want to sign out?
+        </DialogDescription>
         <DialogFooter className="flex flex-col gap-2 sm:flex-row">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
             Cancel
