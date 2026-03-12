@@ -43,6 +43,7 @@ function randomHexToken(bytes = 32): string {
 export async function register(formData: FormData) {
   const email = formData.get("email") as string | null;
   const password = formData.get("password") as string | null;
+  const name = formData.get("name") as string | null;
 
   if (!email?.trim() || !password?.trim()) {
     return { error: "Email and password are required" };
@@ -61,7 +62,7 @@ export async function register(formData: FormData) {
     data: {
       email: emailNorm,
       password: hashed,
-      name: null,
+      name: name?.trim() || null,
       emailVerified: null,
     },
   });
@@ -132,7 +133,7 @@ export async function updateProfile(data: UpdateProfileData) {
       motherPhone: data.motherPhone?.trim() ?? undefined,
     },
   });
-  return { ok: true };
+  return { ok: true, user: { name, phone } };
 }
 
 export async function signOutAction() {

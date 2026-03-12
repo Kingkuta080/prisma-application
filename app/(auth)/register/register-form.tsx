@@ -74,6 +74,19 @@ export function RegisterForm() {
       {/* Email / password form */}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
+          <Label htmlFor="name" className="text-sm font-medium">
+            Name
+          </Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Your name"
+            className="h-10"
+          />
+        </div>
+        <div className="space-y-1.5">
           <Label htmlFor="email" className="text-sm font-medium">
             Email address
           </Label>

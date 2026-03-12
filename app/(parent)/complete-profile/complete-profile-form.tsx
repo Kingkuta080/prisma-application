@@ -2,14 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { updateProfile } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, Loader2 } from "lucide-react";
 
-export function CompleteProfileForm() {
+type CompleteProfileFormProps = {
+  defaultName?: string;
+  defaultPhone?: string;
+};
+
+export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: CompleteProfileFormProps) {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,17 +26,15 @@ export function CompleteProfileForm() {
     setLoading(true);
     try {
       const form = e.currentTarget;
+      const name = (form.elements.namedItem("name") as HTMLInputElement)?.value?.trim() ?? "";
+      const phone = (form.elements.namedItem("phone") as HTMLInputElement)?.value?.trim() ?? "";
       const result = await updateProfile({
-        name: "",
-        phone: "",
-        guardianFullName:
-          (form.elements.namedItem("guardianFullName") as HTMLInputElement)?.value?.trim() ?? "",
+        name,
+        phone,
         residence:
           (form.elements.namedItem("residence") as HTMLInputElement)?.value?.trim() ?? "",
         occupation:
           (form.elements.namedItem("occupation") as HTMLInputElement)?.value?.trim() ?? "",
-        guardianPhone:
-          (form.elements.namedItem("guardianPhone") as HTMLInputElement)?.value?.trim() ?? "",
         guardianEmail:
           (form.elements.namedItem("guardianEmail") as HTMLInputElement)?.value?.trim() ?? "",
         motherPhone:
@@ -38,6 +43,9 @@ export function CompleteProfileForm() {
       if (result?.error) {
         setError(result.error);
         return;
+      }
+      if (result?.user) {
+        await updateSession({ user: { name: result.user.name, phone: result.user.phone } });
       }
       router.refresh();
       router.push("/");
@@ -48,29 +56,63 @@ export function CompleteProfileForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {/* ── Guardian info ─────────────────────────────────────────────────── */}
-      <div className="space-y-4 border-t border-border pt-6">
+      {/* ── Your contact (optional) ──────────────────────────────────────── */}
+      <div className="space-y-4">
         <div className="space-y-1">
           <h2 className="text-sm font-semibold text-foreground">
-            Guardian Information
+          Guardian Information
           </h2>
+          <p className="text-xs text-muted-foreground">
+            Full name and phone help us reach you; both are optional here.
+          </p>
         </div>
-
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="guardianFullName">
-              Guardian&apos;s Full Name
-            </Label>
+            <Label htmlFor="name">Full name</Label>
             <Input
-              id="guardianFullName"
-              name="guardianFullName"
+              id="name"
+              name="name"
               type="text"
               autoComplete="name"
-              placeholder="Full name"
+              placeholder="Your full name"
+              defaultValue={defaultName}
               className="h-10"
             />
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="phone">Phone number 1</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="080********"
+              defaultValue={defaultPhone}
+              className="h-10"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="motherPhone">Phone number 2 (Optional)</Label>
+            <Input
+              id="motherPhone"
+              name="motherPhone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="080********"
+              className="h-10"
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* ── Guardian info ─────────────────────────────────────────────────── */}
+        {/* <div className="space-y-1">
+          <h2 className="text-sm font-semibold text-foreground">
+            Guardian Information
+          </h2>
+        </div> */}
+
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="residence">Home Address</Label>
             <Input
@@ -95,20 +137,6 @@ export function CompleteProfileForm() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="guardianPhone">
-              Guardian&apos;s Phone
-            </Label>
-            <Input
-              id="guardianPhone"
-              name="guardianPhone"
-              type="tel"
-              autoComplete="tel"
-              placeholder="+234 800 000 0000"
-              className="h-10"
-            />
-          </div>
-
-          <div className="space-y-1.5">
             <Label htmlFor="guardianEmail">
               Guardian&apos;s Email
             </Label>
@@ -121,20 +149,7 @@ export function CompleteProfileForm() {
               className="h-10"
             />
           </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="motherPhone">Mother&apos;s Phone</Label>
-            <Input
-              id="motherPhone"
-              name="motherPhone"
-              type="tel"
-              autoComplete="tel"
-              placeholder="+234 800 000 0000"
-              className="h-10"
-            />
-          </div>
         </div>
-      </div>
 
       {/* ── Error ────────────────────────────────────────────────────────── */}
       {error && (
