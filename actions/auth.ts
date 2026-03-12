@@ -43,6 +43,7 @@ function randomHexToken(bytes = 32): string {
 export async function register(formData: FormData) {
   const email = formData.get("email") as string | null;
   const password = formData.get("password") as string | null;
+  const name = formData.get("name") as string | null;
 
   if (!email?.trim() || !password?.trim()) {
     return { error: "Email and password are required" };
@@ -61,7 +62,7 @@ export async function register(formData: FormData) {
     data: {
       email: emailNorm,
       password: hashed,
-      name: null,
+      name: name?.trim() || null,
       emailVerified: null,
     },
   });
@@ -101,8 +102,8 @@ export async function resendVerification(email: string) {
 }
 
 export type UpdateProfileData = {
-  name: string;
-  phone: string;
+  name?: string;
+  phone?: string;
   guardianFullName?: string;
   residence?: string;
   occupation?: string;
@@ -116,14 +117,14 @@ export async function updateProfile(data: UpdateProfileData) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
-  const name = data.name?.trim();
-  const phone = data.phone?.trim();
+  const name = (data.name?.trim() || session.user.name) ?? "";
+  const phone = (data.phone?.trim() || session.user.phone) ?? "";
 
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      ...(name != null && name !== "" && { name }),
-      ...(phone != null && phone !== "" && { phone }),
+      name,
+      phone,
       guardianFullName: data.guardianFullName?.trim() ?? undefined,
       residence: data.residence?.trim() ?? undefined,
       occupation: data.occupation?.trim() ?? undefined,
@@ -132,7 +133,7 @@ export async function updateProfile(data: UpdateProfileData) {
       motherPhone: data.motherPhone?.trim() ?? undefined,
     },
   });
-  return { ok: true };
+  return { ok: true, user: { name, phone } };
 }
 
 export async function signOutAction() {

@@ -70,11 +70,6 @@ export function ApplicationFormPdf({
   const sessionLabel = `${sessionYear - 1}/${sessionYear}`;
   const receiptNo = `RCP-${applicationId.slice(0, 8).toUpperCase()}`;
 
-  // Minimal: light backgrounds, dark text, primary as accent
-  const accentBg = "#f9fafb";
-  const letterheadBg = "#ffffff";
-  const receiptBadgeBg = "#f3f4f6";
-
   const s = StyleSheet.create({
     page: {
       fontFamily: "Helvetica",
@@ -88,7 +83,7 @@ export function ApplicationFormPdf({
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: letterheadBg,
+      backgroundColor: "#ffffff",
       borderBottomWidth: 1,
       borderBottomColor: "#e5e7eb",
       paddingHorizontal: 36,
@@ -103,7 +98,7 @@ export function ApplicationFormPdf({
       width: 44,
       height: 44,
       borderRadius: 8,
-      backgroundColor: receiptBadgeBg,
+      backgroundColor: "#f3f4f6",
     },
     schoolBlock: { flexDirection: "column" },
     schoolNameTxt: {
@@ -118,17 +113,17 @@ export function ApplicationFormPdf({
       marginTop: 3,
     },
     receiptBadge: {
-      backgroundColor: receiptBadgeBg,
+      backgroundColor: "#f3f4f6",
       borderWidth: 1,
       borderColor: "#e5e7eb",
-      borderRadius: 4,
+      borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 5,
     },
     receiptBadgeTxt: {
       fontSize: 8,
       fontFamily: "Helvetica-Bold",
-      color: colorPrimary,
+      color: "#374151",
       letterSpacing: 1.5,
       textTransform: "uppercase",
     },
@@ -137,27 +132,39 @@ export function ApplicationFormPdf({
     refBanner: {
       flexDirection: "row",
       flexWrap: "wrap",
-      alignItems: "center",
-      gap: 20,
-      backgroundColor: accentBg,
+      alignItems: "stretch",
+      gap: 0,
+      backgroundColor: "#f9fafb",
       borderBottomWidth: 1,
       borderBottomColor: "#e5e7eb",
       paddingHorizontal: 36,
-      paddingVertical: 12,
+      paddingVertical: 16,
     },
     refGroup: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginRight: 20,
+      flexDirection: "column",
+      gap: 2,
+      paddingVertical: 4,
+      paddingRight: 28,
+      borderRightWidth: 1,
+      borderRightColor: "#e5e7eb",
+      marginRight: 28,
     },
-    refGroupLast: { marginRight: 0 },
-    refCaption: { fontSize: 8, color: "#6b7280", marginRight: 4 },
+    refGroupLast: {
+      borderRightWidth: 0,
+      marginRight: 0,
+      paddingRight: 0,
+    },
+    refCaption: {
+      fontSize: 7,
+      color: "#9ca3af",
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+    },
     refCode: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Helvetica-Bold",
       color: colorPrimary,
-      letterSpacing: 1,
+      letterSpacing: 0.5,
     },
     refMeta: { fontSize: 8, color: "#6b7280" },
 
@@ -369,29 +376,26 @@ export function ApplicationFormPdf({
               <Text style={s.schoolDescTxt}>{schoolDescription}</Text>
             </View>
           </View>
-          {/* <View style={s.receiptBadge}>
-            <Text style={s.receiptBadgeTxt}>Official Receipt</Text>
-          </View> */}
         </View>
 
         {/* ── Reference banner ── */}
         <View style={s.refBanner}>
           <View style={s.refGroup}>
-            <Text style={s.refCaption}>RECEIPT NO</Text>
+            <Text style={s.refCaption}>Receipt no</Text>
             <Text style={s.refCode}>{receiptNo}</Text>
           </View>
           <View style={s.refGroup}>
-            <Text style={s.refCaption}>DATE</Text>
+            <Text style={s.refCaption}>Date</Text>
             <Text style={s.refCode}>{displayDate}</Text>
           </View>
           {paymentReference && (
             <View style={s.refGroup}>
-              <Text style={s.refCaption}>PAYMENT REF</Text>
+              <Text style={s.refCaption}>Payment ref</Text>
               <Text style={s.refCode}>{paymentReference.toUpperCase()}</Text>
             </View>
           )}
           <View style={[s.refGroup, s.refGroupLast]}>
-            <Text style={s.refCaption}>SESSION</Text>
+            <Text style={s.refCaption}>Session</Text>
             <Text style={s.refCode}>{sessionLabel}</Text>
           </View>
         </View>
@@ -401,10 +405,10 @@ export function ApplicationFormPdf({
 
           {/* Student + Parent cards */}
           <View style={s.infoGrid}>
-            {/* Student */}
+            {/* Applicant */}
             <View style={s.infoCard}>
               <View style={s.infoCardHead}>
-                <Text style={s.infoCardHeadTxt}>Student Information</Text>
+                <Text style={s.infoCardHeadTxt}>Applicant Information</Text>
               </View>
               <View style={s.infoCardBody}>
                 <View style={s.infoRow}>

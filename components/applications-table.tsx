@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, ChevronRight, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { FileText } from "lucide-react";
 
 /* ── Status badge helpers ──────────────────────────────────────────────── */
 
@@ -229,7 +229,6 @@ export function ApplicationsTable({
                   />
                 )}
               </div>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
             </Link>
           );
         })}

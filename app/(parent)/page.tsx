@@ -107,13 +107,16 @@ export default async function DashboardPage() {
       />
 
       <div className="space-y-4 sm:space-y-6">
-        {/* ── Welcome banner (soft minimal) ───────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-primary/[0.08] shadow-sm">
+        {/* ── Welcome banner ───────────────────────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-primary/3 shadow-sm">
+          {/* Subtle brand tint + pattern */}
+          <div className="pointer-events-none absolute inset-0 bg-primary/3" />
           <div
-            className="absolute inset-0 opacity-[0.03]"
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
             style={{
-              backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
-              backgroundSize: "24px 24px",
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, var(--primary) 1px, transparent 0)",
+              backgroundSize: "26px 26px",
             }}
           />
           <div className="relative flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6 sm:gap-4">
@@ -142,7 +145,7 @@ export default async function DashboardPage() {
             {openSessions.length > 0 && (
               <Button
                 asChild
-                className="w-full shrink-0 border border-primary bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
+                className="w-full shrink-0 bg-primary font-semibold text-primary-foreground shadow hover:bg-primary/90 sm:w-auto"
               >
                 <Link href="/new-application">
                   <Plus className="size-4" />

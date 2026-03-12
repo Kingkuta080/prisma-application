@@ -26,12 +26,10 @@ function getS3Client() {
     : undefined;
 
   return new S3Client({
-    ...(endpoint && {
-      endpoint,
-      forcePathStyle:
-        endpoint.includes("localhost") || endpoint.includes("127.0.0.1"),
-    }),
-    region: process.env.S3_REGION || "us-east-1",
+    // Region is required by the SDK but ignored for many S3-compatible providers.
+    // A default is fine when using a custom endpoint.
+    region: "us-east-1",
+    endpoint: process.env.S3_ENDPOINT!,
     credentials: {
       accessKeyId: process.env.S3_ACCESS_KEY_ID!,
       secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
@@ -50,9 +48,9 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   const bucket = process.env.S3_BUCKET?.trim();
-  const publicBaseUrl = process.env.S3_PUBLIC_URL?.trim();
+  const publicUrlBase = process.env.S3_PUBLIC_URL?.trim();
 
-  if (!bucket || !publicBaseUrl) {
+  if (!bucket || !publicUrlBase) {
     return { error: "Image upload is not configured" };
   }
 
@@ -83,8 +81,10 @@ export async function uploadPhoto(dataUrl: string): Promise<UploadResult> {
       })
     );
 
-    const base = publicBaseUrl.replace(/\/$/, "");
-    const url = `${base}/${key}`;
+    // Public URL is derived from the configured base, which supports any
+    // S3-compatible provider (AWS, MinIO, DigitalOcean Spaces, etc.).
+    const normalizedBase = publicUrlBase.replace(/\/+$/, "");
+    const url = `${normalizedBase}/${key}`;
     return { url };
   } catch (err) {
     console.error("S3 upload failed:", err);

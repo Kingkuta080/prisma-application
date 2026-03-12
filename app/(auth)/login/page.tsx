@@ -50,23 +50,23 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* ── Left panel (light minimal) ──────────────────────────────────── */}
+      {/* ── Left panel ─────────────────────────────────────────────────── */}
       <div className="relative hidden w-[46%] shrink-0 flex-col overflow-hidden border-r border-border bg-white lg:flex">
-        {/* Subtle brand tint */}
-        <div className="absolute inset-0 bg-primary/[0.03]" aria-hidden />
-        {/* Subtle dot grid overlay */}
+        {/* Subtle brand tint + dot pattern */}
+        <div className="pointer-events-none absolute inset-0 bg-primary/3" />
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
           style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
-            backgroundSize: "28px 28px",
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, var(--primary) 1px, transparent 0)",
+            backgroundSize: "26px 26px",
           }}
         />
 
         <div className="relative flex flex-1 flex-col p-10">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-1 ring-primary/20">
+            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-1 ring-primary/15">
               <SchoolLogo
                 schoolLogo={config.schoolLogo}
                 wrapperClassName="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl"
@@ -78,7 +78,9 @@ export default async function LoginPage({
               <p className="text-[14px] font-semibold text-foreground">
                 {config.schoolName}
               </p>
-              <p className="text-[10px] font-medium text-muted-foreground">Parent Portal</p>
+              <p className="text-[10px] font-medium text-muted-foreground">
+                Parent Portal
+              </p>
             </div>
           </div>
 
@@ -106,7 +108,9 @@ export default async function LoginPage({
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{title}</p>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{desc}</p>
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      {desc}
+                    </p>
                   </div>
                 </div>
               ))}
