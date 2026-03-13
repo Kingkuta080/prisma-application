@@ -40,7 +40,24 @@ export function RegisterForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("email") as HTMLInputElement)
+      ?.value.trim() ?? "";
+    const password = (form.elements.namedItem("password") as HTMLInputElement)
+      ?.value.trim() ?? "";
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      setLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      setLoading(false);
+      return;
+    }
+
+    const formData = new FormData(form);
     const result = await register(formData);
     if (result?.error) {
       setError(result.error);
@@ -74,8 +91,12 @@ export function RegisterForm() {
       {/* Email / password form */}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="name" className="text-sm font-medium">
-            Name
+          <Label
+            htmlFor="name"
+            className="flex items-center gap-1 text-sm font-medium"
+          >
+            <span>Name</span>
+            <span className="text-xs text-muted-foreground">(Optional)</span>
           </Label>
           <Input
             id="name"
@@ -87,8 +108,12 @@ export function RegisterForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-sm font-medium">
-            Email address
+          <Label
+            htmlFor="email"
+            className="flex items-center gap-1 text-sm font-medium"
+          >
+            <span>Email address</span>
+            <span className="text-destructive">*</span>
           </Label>
           <Input
             id="email"
@@ -101,8 +126,12 @@ export function RegisterForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password" className="text-sm font-medium">
-            Password
+          <Label
+            htmlFor="password"
+            className="flex items-center gap-1 text-sm font-medium"
+          >
+            <span>Password</span>
+            <span className="text-destructive">*</span>
           </Label>
           <div className="relative">
             <Input

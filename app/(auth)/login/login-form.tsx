@@ -117,10 +117,17 @@ export function LoginForm() {
     setErrorMessage(null);
     setLoading(true);
     const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (
-      form.elements.namedItem("password") as HTMLInputElement
-    ).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement)
+      ?.value.trim() ?? "";
+    const password = (form.elements.namedItem("password") as HTMLInputElement)
+      ?.value.trim() ?? "";
+
+    if (!email || !password) {
+      setErrorMessage("Please enter your email and password.");
+      setLoading(false);
+      return;
+    }
+
     const result = await signInCredentials(email, password);
     if (!result.success) {
       setErrorMessage(getAuthErrorMessage(result.errorCode));
@@ -156,8 +163,12 @@ export function LoginForm() {
       {/* Credentials form */}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-sm font-medium">
-            Email address
+          <Label
+            htmlFor="email"
+            className="flex items-center gap-1 text-sm font-medium"
+          >
+            <span>Email address</span>
+            <span className="text-destructive">*</span>
           </Label>
           <Input
             id="email"
@@ -170,8 +181,12 @@ export function LoginForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password" className="text-sm font-medium">
-            Password
+          <Label
+            htmlFor="password"
+            className="flex items-center gap-1 text-sm font-medium"
+          >
+            <span>Password</span>
+            <span className="text-destructive">*</span>
           </Label>
           <div className="relative">
             <Input

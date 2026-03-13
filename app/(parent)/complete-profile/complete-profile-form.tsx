@@ -28,17 +28,28 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
       const form = e.currentTarget;
       const name = (form.elements.namedItem("name") as HTMLInputElement)?.value?.trim() ?? "";
       const phone = (form.elements.namedItem("phone") as HTMLInputElement)?.value?.trim() ?? "";
+      const residence =
+        (form.elements.namedItem("residence") as HTMLInputElement)?.value?.trim() ?? "";
+      const occupation =
+        (form.elements.namedItem("occupation") as HTMLInputElement)?.value?.trim() ?? "";
+      const guardianEmail =
+        (form.elements.namedItem("guardianEmail") as HTMLInputElement)?.value?.trim() ?? "";
+      const motherPhone =
+        (form.elements.namedItem("motherPhone") as HTMLInputElement)?.value?.trim() ?? "";
+
+      if (!name || !phone || !residence || !occupation || !guardianEmail) {
+        setError("Please fill in all required fields before continuing.");
+        setLoading(false);
+        return;
+      }
+
       const result = await updateProfile({
         name,
         phone,
-        residence:
-          (form.elements.namedItem("residence") as HTMLInputElement)?.value?.trim() ?? "",
-        occupation:
-          (form.elements.namedItem("occupation") as HTMLInputElement)?.value?.trim() ?? "",
-        guardianEmail:
-          (form.elements.namedItem("guardianEmail") as HTMLInputElement)?.value?.trim() ?? "",
-        motherPhone:
-          (form.elements.namedItem("motherPhone") as HTMLInputElement)?.value?.trim() ?? "",
+        residence,
+        occupation,
+        guardianEmail,
+        motherPhone,
       });
       if (result?.error) {
         setError(result.error);
@@ -56,19 +67,26 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {/* ── Your contact (optional) ──────────────────────────────────────── */}
+      {/* ── Your contact details ─────────────────────────────────────────── */}
       <div className="space-y-4">
         <div className="space-y-1">
           <h2 className="text-sm font-semibold text-foreground">
-          Guardian Information
+            Contact information
           </h2>
           <p className="text-xs text-muted-foreground">
-            Full name and phone help us reach you; both are optional here.
+            Fields marked with <span className="text-destructive">*</span> are required to
+            continue.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="name">Full name</Label>
+            <Label
+              htmlFor="name"
+              className="flex items-center gap-1 text-sm font-medium"
+            >
+              <span>Full name</span>
+              <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="name"
               name="name"
@@ -77,10 +95,17 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
               placeholder="Your full name"
               defaultValue={defaultName}
               className="h-10"
+              required
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="phone">Phone number 1</Label>
+            <Label
+              htmlFor="phone"
+              className="flex items-center gap-1 text-sm font-medium"
+            >
+              <span>Phone number 1</span>
+              <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="phone"
               name="phone"
@@ -89,6 +114,7 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
               placeholder="080********"
               defaultValue={defaultPhone}
               className="h-10"
+              required
             />
           </div>
           <div className="space-y-1.5">
@@ -114,7 +140,13 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="residence">Home Address</Label>
+            <Label
+              htmlFor="residence"
+              className="flex items-center gap-1 text-sm font-medium"
+            >
+              <span>Home Address</span>
+              <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="residence"
               name="residence"
@@ -122,23 +154,35 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
               autoComplete="street-address"
               placeholder="Full home address"
               className="h-10"
+              required
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="occupation">Occupation</Label>
+            <Label
+              htmlFor="occupation"
+              className="flex items-center gap-1 text-sm font-medium"
+            >
+              <span>Occupation</span>
+              <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="occupation"
               name="occupation"
               type="text"
               placeholder="Occupation"
               className="h-10"
+              required
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="guardianEmail">
-              Guardian&apos;s Email
+            <Label
+              htmlFor="guardianEmail"
+              className="flex items-center gap-1 text-sm font-medium"
+            >
+              <span>Guardian&apos;s Email</span>
+              <span className="text-destructive">*</span>
             </Label>
             <Input
               id="guardianEmail"
@@ -147,6 +191,7 @@ export function CompleteProfileForm({ defaultName = "", defaultPhone = "" }: Com
               autoComplete="email"
               placeholder="email@example.com"
               className="h-10"
+              required
             />
           </div>
         </div>

@@ -1022,7 +1022,13 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="stateOfOrigin">State of Origin</Label>
+                  <Label
+                    htmlFor="stateOfOrigin"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <span>State of Origin</span>
+                    <span className="text-xs text-muted-foreground">(Optional)</span>
+                  </Label>
                   <select
                     id="stateOfOrigin"
                     name="stateOfOrigin"
@@ -1044,7 +1050,13 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="lga">Local Government Area</Label>
+                  <Label
+                    htmlFor="lga"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <span>Local Government Area</span>
+                    <span className="text-xs text-muted-foreground">(Optional)</span>
+                  </Label>
                   <select
                     id="lga"
                     name="lga"
@@ -1068,7 +1080,13 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="nationality">Nationality</Label>
+                  <Label
+                    htmlFor="nationality"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <span>Nationality</span>
+                    <span className="text-xs text-muted-foreground">(Optional)</span>
+                  </Label>
                   <select
                     id="nationality"
                     name="nationality"
@@ -1134,7 +1152,13 @@ export function NewApplicationForm({ sessions }: { sessions: Session[] }) {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="religion">Religion</Label>
+                  <Label
+                    htmlFor="religion"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <span>Religion</span>
+                    <span className="text-xs text-muted-foreground">(Optional)</span>
+                  </Label>
                   <select
                     id="religion"
                     name="religion"
