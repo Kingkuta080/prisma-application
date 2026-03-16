@@ -96,7 +96,6 @@ export function RegisterForm() {
             className="flex items-center gap-1 text-sm font-medium"
           >
             <span>Name</span>
-            <span className="text-xs text-muted-foreground">(Optional)</span>
           </Label>
           <Input
             id="name"
